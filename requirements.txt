@@ -9,6 +9,10 @@ langchain-postgres>=0.0.14
 langchain-community>=0.3.0
 sentence-transformers>=2.2.0
 
+
+# PDF ingest
+pypdf>=4.0.0
+
 # LangGraph & LangChain (Web Search Agent)
 langgraph>=0.2.0
 langchain>=0.3.0
@@ -16,6 +20,7 @@ langchain-openai>=0.2.0
 
 # Tavily 검색
 tavily-python>=0.3.0
+
 
 # 환경 변수
 python-dotenv>=1.0.0
