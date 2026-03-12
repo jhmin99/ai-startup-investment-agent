@@ -1,7 +1,7 @@
 # AI Startup Investment Evaluation Agent
 
 본 프로젝트는 **로보틱스/AI 스타트업**에 대한 투자 가능성을 자동으로 평가하는 **멀티‑에이전트 투자 평가 시스템**입니다.  
-PDF 기업 정보 + 공공 시장 보고서 + 웹 검색을 조합하여, 최종적으로 **HTML 투자 리포트**를 생성합니다.
+PDF 기업 정보 + 공공 시장 보고서 + 웹 검색을 조합하여, 최종적으로 **최종 투자 판단 리포트**를 생성합니다.
 
 ---
 
@@ -9,7 +9,7 @@ PDF 기업 정보 + 공공 시장 보고서 + 웹 검색을 조합하여, 최종
 
 - **Objective**  
   로봇/AI 스타트업의 **기술력, 시장성, 경쟁력, 실적**을 정량·정성적으로 평가하고,  
-  투자 관점에서 **“적극 투자 / 투자 가능 / 보류 / 투자 위험”**을 자동 판정.
+  투자 관점에서 **적극 투자 / 투자 가능 / 보류 / 투자 위험**을 자동 판정.
 
 - **Method**  
   - LangGraph 기반 **Supervisor Agent**가 여러 하위 에이전트를 오케스트레이션
@@ -22,8 +22,7 @@ PDF 기업 정보 + 공공 시장 보고서 + 웹 검색을 조합하여, 최종
   - 사용자 질의 (예: `"물류 자동화 로봇 스타트업 투자 기회 평가해줘"`)
 
 - **Output**
-  - 스타트업별 상세 분석이 포함된 **HTML 투자 보고서** (`report.html`)
-  - (옵션) PDF 변환
+  - 스타트업별 상세 분석이 포함된 **HTML 투자 보고서** PDF 변환
 
 ---
 
@@ -79,7 +78,7 @@ PDF 기업 정보 + 공공 시장 보고서 + 웹 검색을 조합하여, 최종
   - 결과는 `web_search_results`로 Supervisor에 전달
 
 - **Market Evaluation Agent (RAG)**  
-  - `rag_vector_store_market_eval` (시장 보고서 RAG)를 사용  
+  - `rag_vector_store_market_eval` (시장 보고서 RAG)
   - 정제된 질의 + 회사 맥락(업종/주생산품/기술 요약)을 바탕으로 시장 보고서에서 evidence 조회  
   - LLM으로 시장성 평가 JSON 생성:
     - `market_summary`, `market_size`
@@ -183,7 +182,7 @@ cp .env.example .env
 | `documents`                      | 문서 메타데이터 (`store_type`으로 어느 스토어인지 구분) |
 
 ```bash
-cd /Users/jihong/Desktop/ai-startup-investment-agent
+cd /ai-startup-investment-agent
 
 .venv/bin/python -c "from agents.startup_search.ingestion import ensure_db_initialized; \
 ensure_db_initialized('sql/init.sql')"
@@ -215,7 +214,7 @@ print(embed_and_store('docs/로봇_스타트업_기업정보.pdf'))"
 ## 7. Running the Supervisor (End‑to‑End)
 
 ```bash
-cd /Users/jihong/Desktop/ai-startup-investment-agent
+cd /ai-startup-investment-agent
 
 .venv/bin/python -m agents.supervisor.run \
   "물류 자동화 로봇 스타트업 투자 기회 평가해줘" \
@@ -272,7 +271,7 @@ cd /Users/jihong/Desktop/ai-startup-investment-agent
 
 ## 9. Contributors
 
-- **김나령**: 질문 정제 에이전트, 시장성 평가 요구사항 정의  
+- **김나령**: 질문 정제 에이전트, 시장성 평가 에이전트 구현, 그래프 아키텍처 설계
 - **민지홍**: 프로젝트 설계, Supervisor Graph, 스타트업 탐색/보고서 통합  
 - **백강민**: 투자 판단 에이전트, 최종 스코어링/판정 로직  
 - **임진영**: 기술 요약 에이전트, 웹 검색 에이전트, 리포트 템플릿 기획  
