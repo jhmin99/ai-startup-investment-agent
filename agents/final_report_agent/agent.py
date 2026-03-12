@@ -18,6 +18,7 @@ from .utils import (
     score_to_25,
     score_to_30,
     verdict_label,
+    html_to_pdf,
 )
 
 
@@ -67,7 +68,14 @@ def _extract_strength_tags(state: Dict[str, Any]) -> list[str]:
 def _extract_risk_tags(state: Dict[str, Any]) -> list[str]:
     tech = state.get("technology_summary") or {}
     market = state.get("market_assessment") or {}
-    decision = state.get("investment_decision") or {}
+
+    decision_raw = state.get("investment_decision")
+    if decision_raw is None:
+        decision = {}
+    elif hasattr(decision_raw, "model_dump"):
+        decision = decision_raw.model_dump()
+    else:
+        decision = decision_raw or {}
 
     risks: list[str] = []
     risks.extend([x for x in (tech.get("limitations") or []) if isinstance(x, str)])
@@ -99,7 +107,14 @@ def _verdict_theme(verdict: str) -> dict[str, str]:
 def _build_risk_items(state: Dict[str, Any]) -> str:
     tech = state.get("technology_summary") or {}
     market = state.get("market_assessment") or {}
-    decision = state.get("investment_decision") or {}
+
+    decision_raw = state.get("investment_decision")
+    if decision_raw is None:
+        decision = {}
+    elif hasattr(decision_raw, "model_dump"):
+        decision = decision_raw.model_dump()
+    else:
+        decision = decision_raw or {}
 
     limitations = [x for x in (tech.get("limitations") or []) if isinstance(x, str) and x.strip()]
     missing = [x for x in (decision.get("missing_information") or []) if isinstance(x, str) and x.strip()]
@@ -189,7 +204,17 @@ def _build_company_report_section(state: Dict[str, Any], section_index: int | No
     profile = state.get("startup_profile") or {}
     tech = state.get("technology_summary") or {}
     market = state.get("market_assessment") or {}
-    decision = state.get("investment_decision") or {}
+
+    # investment_decision은 pydantic 모델 또는 dict일 수 있다.
+    decision_raw = state.get("investment_decision")
+    if decision_raw is None:
+        decision = {}
+    elif hasattr(decision_raw, "model_dump"):
+        # InvestmentDecision(pydantic) 호환
+        decision = decision_raw.model_dump()
+    else:
+        decision = decision_raw
+
     references = _collect_unique_references(state)
 
     weighted = decision.get("weighted_score") or {}
@@ -212,9 +237,31 @@ def _build_company_report_section(state: Dict[str, Any], section_index: int | No
     score_competitiveness = score_to_25(int((scorecard.get("competitiveness") or {}).get("score", 0) or 0))
     score_traction = score_to_20(int((scorecard.get("traction") or {}).get("score", 0) or 0))
 
-    limit_items = ["공개 데이터만 사용", "실제 재무 데이터 없음", "시장 상황 변동 가능", "내부 기술 미검증"]
+    # 한계점(리밋) 영역: 기본 공통 한계 + 회사별 부족 정보 반영
+    # (여기서는 high-level 한계만 표현하고, 세부 약점/리스크 문장은 tech 쪽에 남긴다.)
+    limit_items: list[str] = ["공개 데이터만 사용", "시장 상황 변동 가능"]
+    # 투자 판단에서 수집한 missing_information을 그대로 일부 노출 (필요 최소한만)
+    for mi in decision.get("missing_information") or []:
+        if isinstance(mi, str) and mi.strip():
+            limit_items.append(mi.strip())
+    # 고객/투자/특허 등 핵심 근거가 없으면 명시적으로 한계로 표기
+    if not profile.get("customers"):
+        limit_items.append("고객사/도입 실적 정보 부족")
+    if not profile.get("fundraising_history"):
+        limit_items.append("투자 유치 이력 정보 부족")
+    if not profile.get("patents"):
+        limit_items.append("특허/IP 근거 부족")
     if decision.get("requires_web_search"):
         limit_items.append("최신 웹 검색 보완 필요")
+
+    # 중복 제거(순서 유지)
+    seen_limits: set[str] = set()
+    dedup_limits: list[str] = []
+    for item in limit_items:
+        if item not in seen_limits:
+            seen_limits.add(item)
+            dedup_limits.append(item)
+    limit_items = dedup_limits
 
     tech_advantages = list(tech.get("strengths") or [])
     if isinstance(tech.get("differentiation"), str) and tech.get("differentiation").strip():
@@ -351,18 +398,452 @@ def _build_company_report_section(state: Dict[str, Any], section_index: int | No
 """.strip()
 
 
-def build_multi_company_html(sections: list[str], page_title: str = "로보틱스 스타트업 투자 보고서") -> str:
-    # 원본 app 버전의 CSS/HTML을 그대로 포함하기엔 너무 길어서, 여기선 최소 wrapper만 제공.
-    # (섹션 HTML은 그대로 유지)
+def build_multi_company_html(
+    sections: list[str], page_title: str = "로보틱스 스타트업 투자 보고서"
+) -> str:
+    """
+    여러 스타트업 섹션을 하나의 HTML 페이지로 합친다.
+
+    - 상단에 공통 헤더 및 목차
+    - 본문에 company-section들을 순서대로 렌더링
+    - 스타일은 원래 app 버전의 CSS를 그대로 사용
+    """
     return f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{escape(page_title)}</title>
+  <style>
+    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{
+      font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      padding: 32px 24px;
+    }}
+    .page-header {{
+      max-width: 1400px;
+      margin: 0 auto 24px auto;
+      background: #1a1a2e;
+      color: white;
+      border-radius: 16px;
+      padding: 28px 32px;
+    }}
+    .page-header h1 {{ font-size: 1.8rem; margin-bottom: 8px; }}
+    .page-header p {{ opacity: 0.75; font-size: 0.95rem; }}
+
+    .toc {{
+      max-width: 1400px;
+      margin: 0 auto 24px auto;
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }}
+    .toc h2 {{ font-size: 1rem; margin-bottom: 12px; }}
+    .toc ul {{ padding-left: 18px; }}
+    .toc li {{ margin-bottom: 6px; }}
+    .toc a {{ color: #0f3460; text-decoration: none; font-weight: 600; }}
+
+    .company-section {{
+      max-width: 1400px;
+      margin: 0 auto 28px auto;
+      padding-bottom: 28px;
+      border-bottom: 2px dashed #d7dce3;
+    }}
+    .company-section:last-child {{ border-bottom: none; }}
+
+    .report-header {{
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      color: white;
+      border-radius: 16px;
+      padding: 36px 40px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }}
+    .report-header h1 {{ font-size: 1.7rem; font-weight: 700; margin-bottom: 6px; }}
+    .report-header p  {{ font-size: 0.9rem; opacity: 0.65; }}
+
+    .header-badge {{
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 18px 28px;
+      text-align: center;
+      min-width: 160px;
+    }}
+
+    .header-badge .score {{
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1;
+    }}
+    .score-blue {{ color: #1976d2; }}
+    .score-green {{ color: #2e7d32; }}
+    .score-orange {{ color: #ef6c00; }}
+    .score-danger {{ color: #c62828; }}
+
+    .header-badge .score-label {{
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 4px;
+    }}
+
+    .verdict-tag {{
+      display: inline-block;
+      margin-top: 10px;
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+    }}
+    .tag-blue {{ background: #1976d2; }}
+    .tag-green {{ background: #2e7d32; }}
+    .tag-orange {{ background: #ef6c00; }}
+    .tag-danger {{ background: #c62828; }}
+
+    .summary-strip {{
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }}
+    .strip-card {{
+      background: white;
+      border-radius: 12px;
+      padding: 20px 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }}
+    .strip-card .label {{
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }}
+    .strip-card .value {{
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1a1a2e;
+    }}
+
+    .tag-list {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }}
+    .tag {{
+      font-size: 0.78rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }}
+    .tag.green  {{ background: #e8f5e9; color: #2e7d32; }}
+    .tag.red    {{ background: #fce4ec; color: #c62828; }}
+
+    .main-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }}
+
+    .card {{
+      background: white;
+      border-radius: 12px;
+      padding: 22px 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }}
+    .card.span2 {{ grid-column: span 2; }}
+
+    .card-title {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f0f2f5;
+    }}
+    .card-title .icon {{
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }}
+
+    .icon.blue   {{ background: #e3f2fd; }}
+    .icon.purple {{ background: #f3e5f5; }}
+    .icon.green  {{ background: #e8f5e9; }}
+    .icon.orange {{ background: #fff3e0; }}
+    .icon.red    {{ background: #fce4ec; }}
+    .icon.teal   {{ background: #e0f2f1; }}
+    .icon.gray   {{ background: #f5f5f5; }}
+
+    .info-row {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid #f8f8f8;
+      font-size: 0.88rem;
+      gap: 12px;
+    }}
+    .info-row:last-child {{ border-bottom: none; }}
+    .info-row .key {{ color: #999; font-size: 0.82rem; }}
+    .info-row .val {{ font-weight: 600; color: #1a1a2e; text-align: right; }}
+
+    .bullet-list {{ list-style: none; }}
+    .bullet-list li {{
+      font-size: 0.88rem;
+      color: #444;
+      padding: 5px 0 5px 14px;
+      position: relative;
+      line-height: 1.5;
+      border-bottom: 1px solid #f8f8f8;
+    }}
+    .bullet-list li:last-child {{ border-bottom: none; }}
+    .bullet-list li::before {{
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: #0f3460;
+      font-size: 0.75rem;
+      top: 6px;
+    }}
+
+    .tech-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }}
+    .tech-item {{
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }}
+    .tech-item .t-label {{
+      font-size: 0.72rem;
+      color: #999;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }}
+    .tech-item .t-val {{
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a2e;
+    }}
+
+    .comp-table {{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }}
+    .comp-table th {{
+      background: #f0f2f5;
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 700;
+      color: #555;
+      font-size: 0.78rem;
+    }}
+    .comp-table td {{
+      padding: 9px 12px;
+      border-bottom: 1px solid #f5f5f5;
+      color: #444;
+    }}
+    .comp-table tr:last-child td {{ border-bottom: none; }}
+    .comp-table td:first-child {{
+      font-weight: 600;
+      color: #1a1a2e;
+    }}
+    .highlight-col {{ background: #fff9c4 !important; }}
+
+    .score-grid {{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }}
+    .score-item {{
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }}
+    .score-item .s-label {{ font-size: 0.82rem; color: #555; }}
+    .score-pill {{
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }}
+    .s-pass {{ background: #e8f5e9; color: #2e7d32; }}
+    .s-fail {{ background: #fce4ec; color: #c62828; }}
+    .s-num  {{ background: #e3f2fd; color: #1565c0; }}
+
+    .verdict-box {{
+      background: linear-gradient(135deg, #0f3460, #16213e);
+      color: white;
+      border-radius: 10px;
+      padding: 18px 22px;
+      text-align: center;
+      margin-top: 14px;
+    }}
+    .verdict-box .v-label {{
+      font-size: 0.75rem;
+      opacity: 0.65;
+      margin-bottom: 6px;
+    }}
+    .verdict-box .v-val {{
+      font-size: 1.4rem;
+      font-weight: 800;
+    }}
+
+    .verdict-blue {{ color: #42a5f5; }}
+    .verdict-green {{ color: #4caf50; }}
+    .verdict-orange {{ color: #ff9800; }}
+    .verdict-danger {{ color: #f44336; }}
+
+    .risk-list {{
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }}
+    .risk-item {{
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #fff8f8;
+      border-left: 3px solid #e94560;
+      border-radius: 0 8px 8px 0;
+      padding: 10px 12px;
+      font-size: 0.87rem;
+    }}
+    .risk-item .r-icon {{
+      font-size: 1rem;
+      flex-shrink: 0;
+    }}
+    .risk-item .r-text {{
+      color: #444;
+      line-height: 1.4;
+    }}
+    .risk-item .r-title {{
+      font-weight: 700;
+      color: #c62828;
+      margin-bottom: 2px;
+    }}
+
+    .ref-list {{
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }}
+    .ref-item {{
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.83rem;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      word-break: break-word;
+    }}
+    .ref-item span {{ opacity: 0.5; }}
+    .ref-item a {{
+      color: #555;
+      text-decoration: none;
+      word-break: break-all;
+    }}
+
+    .limit-list {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }}
+    .limit-chip {{
+      background: #fff3e0;
+      border: 1px solid #ffe082;
+      color: #e65100;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 5px 14px;
+      border-radius: 20px;
+    }}
+
+    .market-stats {{
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }}
+    .m-stat {{
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: center;
+    }}
+    .m-stat .m-num {{
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f3460;
+      line-height: 1.3;
+    }}
+    .m-stat .m-unit {{
+      font-size: 0.72rem;
+      color: #999;
+      margin-top: 4px;
+    }}
+
+    @media (max-width: 900px) {{
+      .main-grid {{ grid-template-columns: 1fr 1fr; }}
+      .summary-strip {{ grid-template-columns: 1fr 1fr; }}
+      .ref-list {{ grid-template-columns: 1fr 1fr; }}
+    }}
+
+    @media (max-width: 600px) {{
+      .main-grid {{ grid-template-columns: 1fr; }}
+      .summary-strip {{ grid-template-columns: 1fr; }}
+      .report-header {{ flex-direction: column; }}
+      .score-grid {{ grid-template-columns: 1fr; }}
+      .market-stats {{ grid-template-columns: 1fr 1fr; }}
+      .ref-list {{ grid-template-columns: 1fr; }}
+    }}
+  </style>
 </head>
 <body>
-  {''.join(sections)}
+  <div class="page-header">
+    <h1>{escape(page_title)}</h1>
+    <p>여러 스타트업의 투자 분석 결과를 하나의 HTML 페이지에서 스크롤로 확인할 수 있습니다.</p>
+  </div>
+
+  <div class="toc">
+    <h2>목차</h2>
+    <ul>
+      {''.join(f'<li><a href="#company-{i+1}">{i+1}번 스타트업 보고서</a></li>' for i in range(len(sections)))}
+    </ul>
+  </div>
+
+  {"".join(sections)}
 </body>
 </html>
 """.strip()
@@ -384,4 +865,17 @@ class FinalReportAgent:
         if hasattr(report, "model_dump"):
             return FinalReport.model_validate(report)
         raise ValueError("final_report was not produced.")
+
+    def render_pdf(self, report: FinalReport, output_path: str) -> None:
+        """
+        FinalReport(HTML 기반)를 지정된 경로의 PDF 파일로 저장한다.
+
+        사용 예:
+            agent = FinalReportAgent()
+            report = agent.run(state)
+            agent.render_pdf(report, \"final_report.pdf\")
+
+        내부적으로 utils.html_to_pdf()를 사용하며, weasyprint 미설치 시 RuntimeError를 발생시킨다.
+        """
+        html_to_pdf(report.html, output_path)
 

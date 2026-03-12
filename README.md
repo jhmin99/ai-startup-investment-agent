@@ -20,6 +20,15 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### 1.1 (macOS) PDF 출력(WeasyPrint) 시스템 의존성
+
+`agents/final_report_agent`에서 HTML → PDF 변환은 `weasyprint`를 사용합니다.  
+macOS에서는 파이썬 패키지 외에 **시스템 라이브러리(pango/cairo/glib 등)** 가 필요할 수 있습니다.
+
+```bash
+brew install pango cairo gdk-pixbuf libffi glib
+```
+
 ---
 
 ## 2. RAG 환경 구성

@@ -394,11 +394,29 @@ def parse_performance_block(perf_block: str) -> PerformanceSection:
 
 
 def extract_references(text: str) -> List[str]:
-    """원문에서 URL을 모두 추출."""
-    urls = re.findall(r"https?://[^\s\]\)]+", text or "")
+    """
+    참고 자료 URL만 추출.
+
+    - 회사 개요에 있는 웹사이트(홈페이지) 주소는 제외하고,
+    - 문서 하단의 '참고:' 블록 안에 나오는 URL만 참고자료로 취급한다.
+    """
+    t = text or ""
+    # '참고:' 또는 '참고 :'로 시작하는 블록을 찾는다.
+    m = re.search(r"(?:^|\n)\s*참고\s*[:：]\s*(.*)", t, flags=re.DOTALL)
+    if not m:
+        return []
+
+    rest = m.group(1)
+    # 참고 블록이 중간에 끊기는 경우를 대비해, 다음 회사 헤더/번호 섹션에서 stop
+    stop_pat = r"(?:^|\n)\s*\d+\.\s*[^\n]+"
+    m2 = re.search(stop_pat, rest)
+    if m2:
+        rest = rest[: m2.start()]
+
+    urls = re.findall(r"https?://[^\s\]\)]+", rest)
     # 중복 제거(순서 유지)
-    seen = set()
-    out = []
+    seen: set[str] = set()
+    out: List[str] = []
     for u in urls:
         if u not in seen:
             seen.add(u)

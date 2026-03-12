@@ -79,7 +79,38 @@ class StartupSearchAgent:
 
             score = max((d.score for d in docs), default=0.0)
 
-            overview, technology, strengths_limits, diff, perf, refs = parse_profile_sections(merged_raw_text)
+            # 1차: merged_raw_text 기준 섹션 파싱
+            overview, technology, strengths_limits, diff, perf, refs_from_text = parse_profile_sections(merged_raw_text)
+
+            # 2차: ingestion 단계에서 metadata.references에 넣어둔 PDF 단위 참고 URL 병합
+            refs_from_meta: List[str] = []
+            for m in md_list:
+                for u in (m.get("references") or []):
+                    if isinstance(u, str) and u.strip():
+                        refs_from_meta.append(u.strip())
+
+            # 중복 제거(순서 유지)
+            all_refs: List[str] = []
+            seen_refs: set[str] = set()
+            for u in list(refs_from_text or []) + refs_from_meta:
+                if u not in seen_refs:
+                    seen_refs.add(u)
+                    all_refs.append(u)
+
+            # 디버깅: 참고 URL 파싱 결과를 로그로 남긴다.
+            try:
+                if all_refs:
+                    print("\n[startup_search] references parsed for company:", company_name)
+                    for r in all_refs:
+                        print("  -", r)
+                else:
+                    # 참고 블록이 안 잡히는 경우 raw 텍스트 끝부분을 확인할 수 있도록 짧게 출력
+                    tail = merged_raw_text[-500:].replace("\n", "\\n")
+                    print(f"\n[startup_search] no references for company: {company_name}")
+                    print("[startup_search] merged_raw_text tail:", tail)
+            except Exception:
+                # 로깅 실패 시 검색 로직에는 영향 주지 않음
+                pass
 
             profiles.append(
                 StartupProfile(
@@ -92,7 +123,7 @@ class StartupSearchAgent:
                     strengths_and_limitations=strengths_limits,
                     differentiation=diff,
                     performance=perf,
-                    references=refs,
+                    references=all_refs,
                     raw_texts=raw_texts,
                     merged_raw_text=merged_raw_text,
                     metadata_list=md_list,

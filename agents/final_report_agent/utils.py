@@ -102,3 +102,22 @@ def pass_fail_label(condition: bool) -> str:
 def pass_fail_class(condition: bool) -> str:
     return "s-pass" if condition else "s-fail"
 
+
+def html_to_pdf(html: str, output_path: str) -> None:
+    """
+    HTML 문자열을 PDF 파일로 저장.
+
+    - 기본 구현은 weasyprint를 사용하며, 설치되어 있지 않으면 친절한 에러를 던진다.
+    - 시스템에 weasyprint + Cairo 등이 안 깔려 있으면, 이 함수를 호출하는 쪽에서
+      try/except로 잡고 "HTML만 사용"하는 fallback을 쓰면 된다.
+    """
+    try:
+        from weasyprint import HTML  # type: ignore[import]
+    except ImportError as exc:
+        raise RuntimeError(
+            "HTML을 PDF로 변환하려면 weasyprint가 필요합니다. "
+            "예: pip install weasyprint"
+        ) from exc
+
+    HTML(string=html).write_pdf(output_path)
+
