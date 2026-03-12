@@ -14,8 +14,8 @@ import json
 from typing import Any, Dict
 
 try:
-    from query_refinement.agent import QueryRefinementAgent
-    from query_refinement.state import QueryRefinementState
+    from .agent import QueryRefinementAgent
+    from .state import QueryRefinementState
 except ImportError:
     from agent import QueryRefinementAgent
     from state import QueryRefinementState
