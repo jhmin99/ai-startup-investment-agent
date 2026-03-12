@@ -49,6 +49,10 @@ def get_vector_store(agent: str, embedding=None, sync: bool = True):
         table_name=table_name,
         schema_name=schema_name,
         embedding_service=embedding,
+        id_column="id",
+        content_column="content",
+        embedding_column="embedding",
+        metadata_json_column="metadata",
     )
 
 
@@ -64,6 +68,9 @@ async def get_vector_store_async(agent: str, embedding=None):
         table_name=table_name,
         schema_name=schema_name,
         embedding_service=embedding,
+        id_column="id",
+        content_column="content",
+        embedding_column="embedding",
+        metadata_json_column="metadata",
     )
-
 
