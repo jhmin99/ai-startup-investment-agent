@@ -1,0 +1,13 @@
+# PostgreSQL + pgvector (RAG)
+psycopg[binary]>=3.1.0
+asyncpg>=0.29.0
+pgvector>=0.2.0
+sqlalchemy[asyncio]>=2.0.0
+
+# LangChain RAG
+langchain-postgres>=0.0.14
+langchain-community>=0.3.0
+sentence-transformers>=2.2.0
+
+# 환경 변수
+python-dotenv>=1.0.0
