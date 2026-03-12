@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import List
 
-from query_refinement.state import QueryRefinementState
+from .state import QueryRefinementState
 
 RESULTS_PATH = Path(__file__).resolve().with_name("results.json")
 

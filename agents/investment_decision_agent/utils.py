@@ -13,7 +13,9 @@ load_dotenv(override=False)
 @dataclass(frozen=True)
 class Settings:
     openai_api_key: str | None = os.getenv("OPENAI_API_KEY")
-    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+    # 기본 모델은 실제 OpenAI 퍼블릭 엔드포인트에서 바로 쓸 수 있는 모델로 설정
+    # (env에 OPENAI_MODEL이 지정되어 있으면 그 값을 우선 사용)
+    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     temperature: float = 0.0
 
 

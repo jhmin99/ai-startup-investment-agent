@@ -14,14 +14,29 @@ TECH_SUMMARY_PROMPT = """당신은 스타트업 기술 분석 전문가입니다
 ## 스타트업 정보
 - 기업명: {startup_name}
 
-## 기술 정보
+## 입력 데이터 구조
+아래 JSON은 두 부분으로 구성됩니다.
+- "structured_fields": startup_search 에이전트가 규칙 기반으로 추출한 구조화 필드
+- "raw_text": 해당 스타트업에 대한 원문 텍스트 (여러 섹션이 합쳐진 형태)
+
+```json
 {technology_info}
+```
+
+### structured_fields 예시
+- company_overview: 대표자, 설립연도, 지역, 업종, 주생산품, 벤처 유형, 투자 현황, 웹사이트 등
+- technology: 기술 요약, 기술 성숙도, 특허/IP 등
+- strengths_and_limitations: [강점] 리스트, [한계] 리스트
+- differentiation: 경쟁사 대비 차별성 설명, 핵심 경쟁 우위 리스트
+- performance: 고객/레퍼런스, 매출/성장, 도입 실적
 
 ## 분석 지침
-1. 핵심 기술을 한 줄로 명확하게 정의
-2. 기술의 강점과 약점을 투자 관점에서 분석
-3. 경쟁사 대비 차별화 포인트 도출
-4. 정량 지표(특허 수, R&D 규모 등)가 있으면 추출
+1. 우선 structured_fields에 있는 값을 신뢰하고, 부족한 부분만 raw_text를 참고해서 보완하세요.
+2. 핵심 기술(core_technology)을 한 줄로 명확하게 정의하세요.
+3. 기술의 강점(tech_strengths)과 약점/리스크(tech_weaknesses)를 투자 관점에서 정리하세요.
+4. 경쟁사 대비 차별화 포인트(tech_differentiation)를 1개 문장으로 도출하세요.
+5. 특허 수(patent_count), R&D 팀 규모(rd_team_size)가 원문에 명시되어 있으면 추출하고, 없으면 null을 사용하세요.
+6. raw_text에 명시적으로 나오지 않는 내용을 마음대로 만들지 마세요. 모호하면 "정보 부족"이나 null을 사용하세요.
 
 ## JSON 출력 형식
 ```json
@@ -42,7 +57,9 @@ TECH_SUMMARY_PROMPT = """당신은 스타트업 기술 분석 전문가입니다
 }}
 ```
 
-주의: 정보가 없는 필드는 null로 표시하세요.
+주의:
+- 정보가 명확히 보이지 않는 필드는 null로 표시하세요.
+- 단, structured_fields와 raw_text를 충분히 검토했는데도 판단이 어려운 경우에만 null을 사용하세요.
 """
 
 

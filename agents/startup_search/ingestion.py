@@ -12,6 +12,7 @@ from psycopg.types.json import Jsonb
 from config import get_settings
 
 from .utils import embed_texts, extract_company_name_from_text, get_psycopg_connection
+from .parser import extract_references
 
 
 @dataclass(frozen=True)
@@ -145,6 +146,10 @@ def embed_and_store(
     if source_file is None:
         source_file = Path(pdf_path).name
 
+    # PDF 전체 텍스트에서 회사 공통 참고 URL(참고: 블록)을 한 번만 파싱
+    full_text = "\n\n".join(p.text for p in pages)
+    pdf_references = extract_references(full_text)
+
     chunk_items = _split_pages_into_chunks(pages, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     if not chunk_items:
         return 0
@@ -161,6 +166,10 @@ def embed_and_store(
     for (content, md), vec in zip(chunk_items, vectors):
         md = dict(md)
         md["source_file"] = source_file
+        # PDF 단위로 추출한 참고 URL을 metadata에 추가해두면,
+        # 나중에 회사별 profile을 만들 때 chunk에 상관없이 참고 자료를 복원할 수 있다.
+        if pdf_references:
+            md["references"] = pdf_references
         rows.append((content, Jsonb(md), vec))
 
     with conn.cursor() as cur:

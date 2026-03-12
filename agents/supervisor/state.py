@@ -32,6 +32,9 @@ class SupervisorState(TypedDict, total=False):
     # 웹 검색 결과(여러 회사 가능)
     web_search_results: List[Dict[str, Any]]
 
+    # 시장성 평가 결과(여러 회사 가능)
+    market_evaluations: List[Dict[str, Any]]
+
     # 최종 보고서(LLM 없이도 생성 가능하도록 텍스트로)
     final_report: str
 

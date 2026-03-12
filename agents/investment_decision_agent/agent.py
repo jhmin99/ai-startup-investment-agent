@@ -32,96 +32,92 @@ def _fallback_score(text: str, positive_keywords: List[str]) -> int:
 
 
 def _build_fallback_scorecard(state: Dict[str, Any]) -> LLMScorecard:
+    """
+    LLM 호출이 실패했을 때를 위한 한국어/구조화 필드 기반 휴리스틱 점수.
+
+    - 영어 키워드 매칭 대신, 지금 파이프라인에서 실제로 채워지는 필드들을 사용해서
+      회사마다 점수가 다르게 나오도록 설계한다.
+    """
     tech = state.get("technology_summary") or {}
     market = state.get("market_assessment") or {}
     exploration = state.get("exploration_summary") or {}
     profile = state.get("startup_profile") or {}
 
-    market_score = _fallback_score(
-        " ".join(
-            [
-                str(market.get("market_size", "")),
-                str(market.get("scalability", "")),
-                *list(market.get("growth_drivers") or []),
-                *list(market.get("target_industries") or []),
-            ]
-        ),
-        [
-            "growth",
-            "expansion",
-            "automation",
-            "humanoid",
-            "factory",
-            "logistics",
-            "service robot",
-            "high demand",
-        ],
-    )
+    strengths = list(tech.get("strengths") or [])
+    differentiation = str(tech.get("differentiation") or "").strip()
 
-    technology_score = _fallback_score(
-        " ".join(
-            [
-                str(tech.get("core_technology", "")),
-                str(tech.get("differentiation", "")),
-                *list(tech.get("strengths") or []),
-                *list(profile.get("patents") or []),
-            ]
-        ),
-        [
-            "patent",
-            "proprietary",
-            "vision",
-            "sensor fusion",
-            "foundation model",
-            "autonomy",
-            "precision",
-            "multimodal",
-        ],
-    )
+    market_size = str(market.get("market_size") or "").strip()
+    growth_drivers = list(market.get("growth_drivers") or [])
+    target_industries = list(market.get("target_industries") or [])
 
-    competitiveness_score = _fallback_score(
-        str(exploration.get("competitor_summary", "")),
-        [
-            "differentiated",
-            "cost advantage",
-            "speed",
-            "accuracy",
-            "integration",
-            "deployment",
-            "partnership",
-            "moat",
-        ],
-    )
+    competitor_summary = str(exploration.get("competitor_summary") or "").strip()
+    traction_summary = str(exploration.get("traction_summary") or "").strip()
 
-    traction_score = _fallback_score(
-        " ".join(
-            [
-                str(exploration.get("traction_summary", "")),
-                *list(profile.get("customers") or []),
-                *list(profile.get("fundraising_history") or []),
-            ]
-        ),
-        [
-            "customer",
-            "pilot",
-            "revenue",
-            "series",
-            "contract",
-            "deployment",
-            "recurring",
-            "po",
-        ],
-    )
+    customers = list(profile.get("customers") or [])
+    fundraising_history = list(profile.get("fundraising_history") or [])
+    patents = list(profile.get("patents") or [])
+
+    # --- 시장 점수: 시장 정보가 얼마나 있는지 ---
+    market_score = 1
+    if market_size and market_size != "정보 부족":
+        market_score += 1
+    if growth_drivers:
+        market_score += 1
+    if target_industries:
+        market_score += 1
+    # 시장 관련 서술이 traction/competitor에 조금이라도 있으면 +1
+    if any(
+        kw in (market_size + traction_summary + competitor_summary)
+        for kw in ["시장", "성장", "수요", "로봇", "자동화"]
+    ):
+        market_score += 1
+    market_score = max(1, min(5, market_score))
+
+    # --- 기술 점수: 강점/차별성/특허 등 ---
+    technology_score = 1
+    if strengths:
+        technology_score += 1
+    if len(strengths) >= 3:
+        technology_score += 1
+    if differentiation and differentiation != "정보 없음":
+        technology_score += 1
+    if patents:
+        technology_score += 1
+    technology_score = max(1, min(5, technology_score))
+
+    # --- 경쟁력 점수: 경쟁사 대비 설명 여부 ---
+    competitiveness_score = 1
+    if differentiation and "정보 부족" not in differentiation:
+        competitiveness_score += 1
+    if competitor_summary:
+        competitiveness_score += 1
+    if any(kw in competitor_summary for kw in ["차별", "우위", "경쟁", "비교"]):
+        competitiveness_score += 1
+    competitiveness_score = max(1, min(5, competitiveness_score))
+
+    # --- 실적 점수: traction/고객/투자 이력 ---
+    traction_score = 1
+    if customers:
+        traction_score += 1
+    if fundraising_history:
+        traction_score += 1
+    if traction_summary:
+        traction_score += 1
+    if any(kw in traction_summary for kw in ["고객", "파일럿", "도입", "매출", "계약", "PoC"]):
+        traction_score += 1
+    traction_score = max(1, min(5, traction_score))
 
     return LLMScorecard(
-        market=ScoreItem(score=market_score, rationale="환경 변수 미설정으로 휴리스틱 점수 사용"),
+        market=ScoreItem(score=market_score, rationale="LLM 실패로 구조화 필드 기반 휴리스틱 점수 사용"),
         technology=ScoreItem(
-            score=technology_score, rationale="환경 변수 미설정으로 휴리스틱 점수 사용"
+            score=technology_score, rationale="LLM 실패로 구조화 필드 기반 휴리스틱 점수 사용"
         ),
         competitiveness=ScoreItem(
-            score=competitiveness_score, rationale="환경 변수 미설정으로 휴리스틱 점수 사용"
+            score=competitiveness_score, rationale="LLM 실패로 구조화 필드 기반 휴리스틱 점수 사용"
         ),
-        traction=ScoreItem(score=traction_score, rationale="환경 변수 미설정으로 휴리스틱 점수 사용"),
+        traction=ScoreItem(
+            score=traction_score, rationale="LLM 실패로 구조화 필드 기반 휴리스틱 점수 사용"
+        ),
     )
 
 
