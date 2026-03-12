@@ -1,0 +1,45 @@
+[
+  {
+    "input": {
+      "raw_question": "요즘 뜨는 로봇 회사 뭐야?",
+      "retrieval_feedback": {
+        "result_count": 0,
+        "top_scores": [
+          0.18,
+          0.14
+        ],
+        "noisy_results": false
+      }
+    },
+    "output": {
+      "refined_query": "로보틱스 스타트업 투자 검토 후보",
+      "reformulated_queries": [
+        "로보틱스 스타트업 투자 검토 후보",
+        "robotics startup investment screening",
+        "한국 로보틱스 스타트업 후보"
+      ],
+      "retry_strategy": "1차는 refined_query로 재검색하고, 결과가 없으면 reformulated_queries를 순차 적용한다."
+    }
+  },
+  {
+    "input": {
+      "raw_question": "비전 검사 같은 거 하는 데",
+      "retrieval_feedback": {
+        "result_count": 1,
+        "top_scores": [
+          0.16
+        ],
+        "noisy_results": false
+      }
+    },
+    "output": {
+      "refined_query": "비전 검사 로봇 스타트업",
+      "reformulated_queries": [
+        "비전 검사 로봇 스타트업",
+        "vision inspection robotics startup",
+        "quality inspection robot startup"
+      ],
+      "retry_strategy": "1차는 refined_query로 재검색하고, 결과가 없으면 reformulated_queries를 순차 적용한다."
+    }
+  }
+]
