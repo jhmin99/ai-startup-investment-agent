@@ -9,8 +9,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol
 from urllib import error, request
 
-from query_refinement.prompts import build_user_prompt, get_system_prompt
-from query_refinement.state import (
+from .prompts import build_user_prompt, get_system_prompt
+from .state import (
     QueryRefinementOutput,
     QueryRefinementState,
     validate_query_refinement_state,

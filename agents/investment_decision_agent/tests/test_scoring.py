@@ -1,5 +1,5 @@
-from app.agents.investment_decision_agent import _calculate_weighted_score
-from app.models.schemas import LLMScorecard, ScoreItem
+from agents.investment_decision_agent.agent import _calculate_weighted_score
+from agents.investment_decision_agent.schemas import LLMScorecard, ScoreItem
 
 
 def test_weighted_score() -> None:

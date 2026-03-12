@@ -1,17 +1,11 @@
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from langchain_core.prompts import ChatPromptTemplate
 
-from app.core.llm import get_chat_model
-from app.models.schemas import (
-    InvestmentDecision,
-    LLMScorecard,
-    ScoreItem,
-    WeightedScore,
-)
-from app.models.state import InvestmentGraphState
+from .schemas import InvestmentDecision, LLMScorecard, ScoreItem, WeightedScore
+from .utils import get_chat_model
 
 
 WEIGHTS: Dict[str, int] = {
@@ -23,7 +17,7 @@ WEIGHTS: Dict[str, int] = {
 
 
 def _fallback_score(text: str, positive_keywords: List[str]) -> int:
-    normalized = text.lower()
+    normalized = (text or "").lower()
     hit_count = sum(1 for keyword in positive_keywords if keyword.lower() in normalized)
 
     if hit_count >= 4:
@@ -37,19 +31,19 @@ def _fallback_score(text: str, positive_keywords: List[str]) -> int:
     return 1
 
 
-def _build_fallback_scorecard(state: InvestmentGraphState) -> LLMScorecard:
-    tech = state["technology_summary"]
-    market = state["market_assessment"]
-    exploration = state["exploration_summary"]
-    profile = state["startup_profile"]
+def _build_fallback_scorecard(state: Dict[str, Any]) -> LLMScorecard:
+    tech = state.get("technology_summary") or {}
+    market = state.get("market_assessment") or {}
+    exploration = state.get("exploration_summary") or {}
+    profile = state.get("startup_profile") or {}
 
     market_score = _fallback_score(
         " ".join(
             [
-                market.market_size,
-                market.scalability,
-                *market.growth_drivers,
-                *market.target_industries,
+                str(market.get("market_size", "")),
+                str(market.get("scalability", "")),
+                *list(market.get("growth_drivers") or []),
+                *list(market.get("target_industries") or []),
             ]
         ),
         [
@@ -67,10 +61,10 @@ def _build_fallback_scorecard(state: InvestmentGraphState) -> LLMScorecard:
     technology_score = _fallback_score(
         " ".join(
             [
-                tech.core_technology,
-                tech.differentiation,
-                *tech.strengths,
-                *profile.patents,
+                str(tech.get("core_technology", "")),
+                str(tech.get("differentiation", "")),
+                *list(tech.get("strengths") or []),
+                *list(profile.get("patents") or []),
             ]
         ),
         [
@@ -86,7 +80,7 @@ def _build_fallback_scorecard(state: InvestmentGraphState) -> LLMScorecard:
     )
 
     competitiveness_score = _fallback_score(
-        exploration.competitor_summary,
+        str(exploration.get("competitor_summary", "")),
         [
             "differentiated",
             "cost advantage",
@@ -102,9 +96,9 @@ def _build_fallback_scorecard(state: InvestmentGraphState) -> LLMScorecard:
     traction_score = _fallback_score(
         " ".join(
             [
-                exploration.traction_summary,
-                *profile.customers,
-                *profile.fundraising_history,
+                str(exploration.get("traction_summary", "")),
+                *list(profile.get("customers") or []),
+                *list(profile.get("fundraising_history") or []),
             ]
         ),
         [
@@ -120,23 +114,18 @@ def _build_fallback_scorecard(state: InvestmentGraphState) -> LLMScorecard:
     )
 
     return LLMScorecard(
-        market=ScoreItem(
-            score=market_score, rationale="환경 변수 미설정으로 휴리스틱 점수 사용"
-        ),
+        market=ScoreItem(score=market_score, rationale="환경 변수 미설정으로 휴리스틱 점수 사용"),
         technology=ScoreItem(
             score=technology_score, rationale="환경 변수 미설정으로 휴리스틱 점수 사용"
         ),
         competitiveness=ScoreItem(
-            score=competitiveness_score,
-            rationale="환경 변수 미설정으로 휴리스틱 점수 사용",
+            score=competitiveness_score, rationale="환경 변수 미설정으로 휴리스틱 점수 사용"
         ),
-        traction=ScoreItem(
-            score=traction_score, rationale="환경 변수 미설정으로 휴리스틱 점수 사용"
-        ),
+        traction=ScoreItem(score=traction_score, rationale="환경 변수 미설정으로 휴리스틱 점수 사용"),
     )
 
 
-def _score_with_llm(state: InvestmentGraphState) -> LLMScorecard:
+def _score_with_llm(state: Dict[str, Any]) -> LLMScorecard:
     llm = get_chat_model().with_structured_output(LLMScorecard)
 
     prompt = ChatPromptTemplate.from_messages(
@@ -180,21 +169,19 @@ def _score_with_llm(state: InvestmentGraphState) -> LLMScorecard:
         ]
     )
 
+    # state가 pydantic을 쓰든 dict를 쓰든 최대한 그대로 문자열화해서 전달
+    def dump_json(v: Any) -> str:
+        if hasattr(v, "model_dump_json"):
+            return v.model_dump_json(indent=2, ensure_ascii=False)
+        return str(v)
+
     return (prompt | llm).invoke(
         {
-            "user_query": state["user_query"],
-            "startup_profile": state["startup_profile"].model_dump_json(
-                indent=2, ensure_ascii=False
-            ),
-            "exploration_summary": state["exploration_summary"].model_dump_json(
-                indent=2, ensure_ascii=False
-            ),
-            "technology_summary": state["technology_summary"].model_dump_json(
-                indent=2, ensure_ascii=False
-            ),
-            "market_assessment": state["market_assessment"].model_dump_json(
-                indent=2, ensure_ascii=False
-            ),
+            "user_query": state.get("user_query", ""),
+            "startup_profile": dump_json(state.get("startup_profile")),
+            "exploration_summary": dump_json(state.get("exploration_summary")),
+            "technology_summary": dump_json(state.get("technology_summary")),
+            "market_assessment": dump_json(state.get("market_assessment")),
         }
     )
 
@@ -202,17 +189,10 @@ def _score_with_llm(state: InvestmentGraphState) -> LLMScorecard:
 def _calculate_weighted_score(scorecard: LLMScorecard) -> WeightedScore:
     market_weighted = scorecard.market.score / 5 * WEIGHTS["market"]
     technology_weighted = scorecard.technology.score / 5 * WEIGHTS["technology"]
-    competitiveness_weighted = (
-        scorecard.competitiveness.score / 5 * WEIGHTS["competitiveness"]
-    )
+    competitiveness_weighted = scorecard.competitiveness.score / 5 * WEIGHTS["competitiveness"]
     traction_weighted = scorecard.traction.score / 5 * WEIGHTS["traction"]
 
-    total = (
-        market_weighted
-        + technology_weighted
-        + competitiveness_weighted
-        + traction_weighted
-    )
+    total = market_weighted + technology_weighted + competitiveness_weighted + traction_weighted
 
     return WeightedScore(
         market=round(market_weighted, 1),
@@ -233,25 +213,36 @@ def _determine_verdict(total_score: float) -> str:
     return "보류"
 
 
-def _collect_missing_information(state: InvestmentGraphState) -> List[str]:
+def _collect_missing_information(state: Dict[str, Any]) -> List[str]:
     missing: List[str] = []
 
-    profile = state["startup_profile"]
-    market = state["market_assessment"]
+    profile = state.get("startup_profile") or {}
+    market = state.get("market_assessment") or {}
 
-    if not profile.customers:
+    def _as_list(v: Any) -> List[str]:
+        if isinstance(v, list):
+            return [x for x in v if isinstance(x, str)]
+        return []
+
+    if not _as_list(profile.get("customers")):
         missing.append("고객사 또는 파일럿 도입 정보")
-    if not profile.fundraising_history:
+    if not _as_list(profile.get("fundraising_history")):
         missing.append("투자 유치 이력")
-    if not profile.patents:
+    if not _as_list(profile.get("patents")):
         missing.append("특허 또는 독자 기술 증빙")
-    if not market.commercialization_risk:
+    if not (isinstance(market.get("commercialization_risk"), str) and market.get("commercialization_risk").strip()):
         missing.append("상용화 리스크 정리")
 
     return missing
 
 
-def investment_decision_node(state: InvestmentGraphState) -> InvestmentGraphState:
+def investment_decision_node(state: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    LangGraph node 스타일(입력 state dict -> state dict).
+
+    반환:
+    - investment_decision: InvestmentDecision (pydantic)
+    """
     try:
         scorecard = _score_with_llm(state)
     except Exception:
@@ -272,7 +263,7 @@ def investment_decision_node(state: InvestmentGraphState) -> InvestmentGraphStat
     decision = InvestmentDecision(
         scorecard=scorecard,
         weighted_score=weighted,
-        verdict=verdict,
+        verdict=verdict,  # type: ignore[arg-type]
         requires_web_search=requires_web_search,
         decision_rationale=rationale,
         missing_information=missing_information,
@@ -280,3 +271,20 @@ def investment_decision_node(state: InvestmentGraphState) -> InvestmentGraphStat
 
     state["investment_decision"] = decision
     return state
+
+
+class InvestmentDecisionAgent:
+    """
+    investment_decision_node를 class로 감싼 버전.
+    """
+
+    def run(self, state: Dict[str, Any]) -> InvestmentDecision:
+        out = investment_decision_node(state)
+        decision = out.get("investment_decision")
+        if isinstance(decision, InvestmentDecision):
+            return decision
+        if hasattr(decision, "model_dump"):
+            # pydantic 호환
+            return InvestmentDecision.model_validate(decision)
+        raise ValueError("investment_decision was not produced.")
+

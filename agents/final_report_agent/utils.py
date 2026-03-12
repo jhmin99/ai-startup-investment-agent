@@ -3,7 +3,7 @@ from __future__ import annotations
 from html import escape
 from typing import Iterable
 
-from app.models.schemas import Reference
+from .schemas import Reference
 
 
 def safe_text(value: str | None, default: str = "미상") -> str:
@@ -101,3 +101,4 @@ def pass_fail_label(condition: bool) -> str:
 
 def pass_fail_class(condition: bool) -> str:
     return "s-pass" if condition else "s-fail"
+
