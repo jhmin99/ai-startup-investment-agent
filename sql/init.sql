@@ -7,8 +7,11 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================================
 -- 스타트업 탐색 에이전트용 (벤처기업 데이터 등 후보 탐색)
+-- 기존 데이터/스키마를 통째로 새로 만들 수 있도록 DROP 후 CREATE.
 -- ============================================================
-CREATE TABLE IF NOT EXISTS public.rag_vector_store_startup_search (
+DROP TABLE IF EXISTS public.rag_vector_store_startup_search;
+
+CREATE TABLE public.rag_vector_store_startup_search (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     content TEXT,
     metadata JSONB,
@@ -21,8 +24,11 @@ CREATE INDEX IF NOT EXISTS rag_vector_store_startup_search_embedding_idx
 
 -- ============================================================
 -- 시장성 평가 에이전트용 (로봇산업 실태조사, 시장 보고서 등)
+-- 마찬가지로 매 init 시점에 스키마/데이터를 재생성.
 -- ============================================================
-CREATE TABLE IF NOT EXISTS public.rag_vector_store_market_eval (
+DROP TABLE IF EXISTS public.rag_vector_store_market_eval;
+
+CREATE TABLE public.rag_vector_store_market_eval (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     content TEXT,
     metadata JSONB,
