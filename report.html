@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>로보틱스 스타트업 투자 보고서</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      padding: 32px 24px;
+    }
+    .page-header {
+      max-width: 1400px;
+      margin: 0 auto 24px auto;
+      background: #1a1a2e;
+      color: white;
+      border-radius: 16px;
+      padding: 28px 32px;
+    }
+    .page-header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+    .page-header p { opacity: 0.75; font-size: 0.95rem; }
+
+    .toc {
+      max-width: 1400px;
+      margin: 0 auto 24px auto;
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .toc h2 { font-size: 1rem; margin-bottom: 12px; }
+    .toc ul { padding-left: 18px; }
+    .toc li { margin-bottom: 6px; }
+    .toc a { color: #0f3460; text-decoration: none; font-weight: 600; }
+
+    .company-section {
+      max-width: 1400px;
+      margin: 0 auto 28px auto;
+      padding-bottom: 28px;
+      border-bottom: 2px dashed #d7dce3;
+    }
+    .company-section:last-child { border-bottom: none; }
+
+    .report-header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      color: white;
+      border-radius: 16px;
+      padding: 36px 40px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .report-header h1 { font-size: 1.7rem; font-weight: 700; margin-bottom: 6px; }
+    .report-header p  { font-size: 0.9rem; opacity: 0.65; }
+
+    .header-badge {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 18px 28px;
+      text-align: center;
+      min-width: 160px;
+    }
+
+    .header-badge .score {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .score-blue { color: #1976d2; }
+    .score-green { color: #2e7d32; }
+    .score-orange { color: #ef6c00; }
+    .score-danger { color: #c62828; }
+
+    .header-badge .score-label {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+
+    .verdict-tag {
+      display: inline-block;
+      margin-top: 10px;
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+    }
+    .tag-blue { background: #1976d2; }
+    .tag-green { background: #2e7d32; }
+    .tag-orange { background: #ef6c00; }
+    .tag-danger { background: #c62828; }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .strip-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .strip-card .label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+    .strip-card .value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .tag {
+      font-size: 0.78rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .tag.green  { background: #e8f5e9; color: #2e7d32; }
+    .tag.red    { background: #fce4ec; color: #c62828; }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 22px 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .card.span2 { grid-column: span 2; }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f0f2f5;
+    }
+    .card-title .icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }
+
+    .icon.blue   { background: #e3f2fd; }
+    .icon.purple { background: #f3e5f5; }
+    .icon.green  { background: #e8f5e9; }
+    .icon.orange { background: #fff3e0; }
+    .icon.red    { background: #fce4ec; }
+    .icon.teal   { background: #e0f2f1; }
+    .icon.gray   { background: #f5f5f5; }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid #f8f8f8;
+      font-size: 0.88rem;
+      gap: 12px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .key { color: #999; font-size: 0.82rem; }
+    .info-row .val { font-weight: 600; color: #1a1a2e; text-align: right; }
+
+    .bullet-list { list-style: none; }
+    .bullet-list li {
+      font-size: 0.88rem;
+      color: #444;
+      padding: 5px 0 5px 14px;
+      position: relative;
+      line-height: 1.5;
+      border-bottom: 1px solid #f8f8f8;
+    }
+    .bullet-list li:last-child { border-bottom: none; }
+    .bullet-list li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: #0f3460;
+      font-size: 0.75rem;
+      top: 6px;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .tech-item {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .tech-item .t-label {
+      font-size: 0.72rem;
+      color: #999;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .tech-item .t-val {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .comp-table th {
+      background: #f0f2f5;
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 700;
+      color: #555;
+      font-size: 0.78rem;
+    }
+    .comp-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f5f5f5;
+      color: #444;
+    }
+    .comp-table tr:last-child td { border-bottom: none; }
+    .comp-table td:first-child {
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+    .highlight-col { background: #fff9c4 !important; }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .score-item {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .score-item .s-label { font-size: 0.82rem; color: #555; }
+    .score-pill {
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .s-pass { background: #e8f5e9; color: #2e7d32; }
+    .s-fail { background: #fce4ec; color: #c62828; }
+    .s-num  { background: #e3f2fd; color: #1565c0; }
+
+    .verdict-box {
+      background: linear-gradient(135deg, #0f3460, #16213e);
+      color: white;
+      border-radius: 10px;
+      padding: 18px 22px;
+      text-align: center;
+      margin-top: 14px;
+    }
+    .verdict-box .v-label {
+      font-size: 0.75rem;
+      opacity: 0.65;
+      margin-bottom: 6px;
+    }
+    .verdict-box .v-val {
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+
+    .verdict-blue { color: #42a5f5; }
+    .verdict-green { color: #4caf50; }
+    .verdict-orange { color: #ff9800; }
+    .verdict-danger { color: #f44336; }
+
+    .risk-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .risk-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #fff8f8;
+      border-left: 3px solid #e94560;
+      border-radius: 0 8px 8px 0;
+      padding: 10px 12px;
+      font-size: 0.87rem;
+    }
+    .risk-item .r-icon {
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .risk-item .r-text {
+      color: #444;
+      line-height: 1.4;
+    }
+    .risk-item .r-title {
+      font-weight: 700;
+      color: #c62828;
+      margin-bottom: 2px;
+    }
+
+    .ref-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .ref-item {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.83rem;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      word-break: break-word;
+    }
+    .ref-item span { opacity: 0.5; }
+    .ref-item a {
+      color: #555;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .limit-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .limit-chip {
+      background: #fff3e0;
+      border: 1px solid #ffe082;
+      color: #e65100;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 5px 14px;
+      border-radius: 20px;
+    }
+
+    .market-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .m-stat {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .m-stat .m-num {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f3460;
+      line-height: 1.3;
+    }
+    .m-stat .m-unit {
+      font-size: 0.72rem;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr 1fr; }
+      .summary-strip { grid-template-columns: 1fr 1fr; }
+      .ref-list { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .summary-strip { grid-template-columns: 1fr; }
+      .report-header { flex-direction: column; }
+      .score-grid { grid-template-columns: 1fr; }
+      .market-stats { grid-template-columns: 1fr 1fr; }
+      .ref-list { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>로보틱스 스타트업 투자 보고서</h1>
+    <p>여러 스타트업의 투자 분석 결과를 하나의 HTML 페이지에서 스크롤로 확인할 수 있습니다.</p>
+  </div>
+
+  <div class="toc">
+    <h2>목차</h2>
+    <ul>
+      <li><a href="#company-1">1번 스타트업 보고서</a></li><li><a href="#company-2">2번 스타트업 보고서</a></li><li><a href="#company-3">3번 스타트업 보고서</a></li><li><a href="#company-4">4번 스타트업 보고서</a></li><li><a href="#company-5">5번 스타트업 보고서</a></li>
+    </ul>
+  </div>
+
+  <section class="company-section" id="company-1">
+  <div class="report-header">
+    <div>
+      <h1>🤖 1. (주)파워로보틱스</h1>
+      <p>로봇 스타트업 투자 분석 보고서 &nbsp;·&nbsp; 2026년 3월</p>
+    </div>
+    <div class="header-badge">
+      <div class="score score-blue">80<span style="font-size:1.2rem">/100</span></div>
+      <div class="score-label">종합 투자 점수</div>
+      <div class="verdict-tag tag-blue">적극 투자</div>
+    </div>
+  </div>
+
+  <div class="summary-strip">
+    <div class="strip-card">
+      <div class="label">핵심 사업</div>
+      <div class="value">산업용 로봇 제조업 / 로봇자동화</div>
+    </div>
+    <div class="strip-card">
+      <div class="label">핵심 장점</div>
+      <div class="tag-list">
+        <span class="tag green">강점1: AI 기반 비전 시스템을 활용한 정밀한 자동화 작업 수행</span>
+<span class="tag green">강점2: TRL 7 수준의 기술 성숙도로 상용화 및 산업 현장 적용 사례 다수</span>
+<span class="tag green">자율주행 기술과 SLAM을 활용하여 로봇의 자율성을 강화</span>
+      </div>
+    </div>
+    <div class="strip-card">
+      <div class="label">위험 요소</div>
+      <div class="tag-list">
+        <span class="tag red">약점/리스크1: 정보 부족</span>
+<span class="tag red">약점/리스크2: 정보 부족</span>
+<span class="tag red">로봇서비스 분야의 수입 감소, 제조업용 로봇 분야의 인력 감소</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon blue">🏢</div> 기업 소개</div>
+      <div class="info-row"><span class="key">설립 연도</span><span class="val">2022</span></div>
+      <div class="info-row"><span class="key">본사 위치</span><span class="val">경남 / 경상남도 김해시</span></div>
+      <div class="info-row"><span class="key">대표자</span><span class="val">조**</span></div>
+      <div class="info-row"><span class="key">투자 유치</span><span class="val">파워오토로보틱스는 35억원의 투자 유치를 통해 무인화 솔루션 혁신을 가속화하고 있음.</span></div>
+      <div class="info-row"><span class="key">해결 문제</span><span class="val">산업용 로봇 제조업 / 로봇자동화</span></div>
+    </div>
+
+    <div class="card span2">
+      <div class="card-title"><div class="icon purple">⚙️</div> 기술 분석</div>
+      <div class="tech-grid">
+        <div class="tech-item"><div class="t-label">로봇 기술 구조</div><div class="t-val">모듈형/현장 최적화 구조</div></div>
+        <div class="tech-item"><div class="t-label">AI 기술</div><div class="t-val">AI 및 비전 시스템을 기반으로 한 하이브리드 이형 부품 삽입 로봇 자동화 기술</div></div>
+        <div class="tech-item"><div class="t-label">센서 기술</div><div class="t-val">로봇자동화</div></div>
+        <div class="tech-item"><div class="t-label">특허</div><div class="t-val">공개 정보 부족</div></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="card-title" style="margin-bottom:10px; border-bottom:none; padding-bottom:0;">경쟁사 대비 기술 장점</div>
+        <ul class="bullet-list">
+<li>강점1: AI 기반 비전 시스템을 활용한 정밀한 자동화 작업 수행</li>
+<li>강점2: TRL 7 수준의 기술 성숙도로 상용화 및 산업 현장 적용 사례 다수</li>
+<li>자율주행 기술과 SLAM을 활용하여 로봇의 자율성을 강화</li>
+</ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card span2">
+      <div class="card-title"><div class="icon green">📊</div> 시장 분석</div>
+      <div class="market-stats">
+        <div class="m-stat"><div class="m-num">2024년 로봇산업 수출액은 5조 215억 원으로 전년 대비 1.1% 증가하였으며, 제조업용 로봇이 가장 높은 비중을 차지합니다.</div><div class="m-unit">시장 규모/설명</div></div>
+        <div class="m-stat"><div class="m-num">로봇시스템의 수입 증가율 47.8%, 제조업용 로봇의 수출 비중 61.1%</div><div class="m-unit">주요 성장 동인</div></div>
+        <div class="m-stat"><div class="m-num">전자 산업, 전장 산업, 스마트 팩토리</div><div class="m-unit">주요 수요 산업</div></div>
+      </div>
+      <ul class="bullet-list">
+        <li>주요 산업: 전자 산업, 전장 산업, 스마트 팩토리</li>
+        <li>시장 성장 동인: 로봇시스템의 수입 증가율 47.8%, 제조업용 로봇의 수출 비중 61.1%</li>
+        <li>시장 위험 요소: 로봇서비스 분야의 수입 감소, 제조업용 로봇 분야의 인력 감소</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon red">⚠️</div> 위험 요소</div>
+      <div class="risk-list">
+        <div class="risk-item">
+              <div class="r-icon">🔧</div>
+              <div class="r-text">
+                <div class="r-title">기술 리스크</div>
+                약점/리스크1: 정보 부족
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">📋</div>
+              <div class="r-text">
+                <div class="r-title">사업화 리스크</div>
+                로봇서비스 분야의 수입 감소, 제조업용 로봇 분야의 인력 감소
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">💸</div>
+              <div class="r-text">
+                <div class="r-title">근거 부족</div>
+                특허 또는 독자 기술 증빙
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">⚔️</div>
+              <div class="r-text">
+                <div class="r-title">경쟁 리스크</div>
+                로봇산업 내 제조업용 로봇 분야는 수출 비중이 높아 경쟁이 치열할 것으로 예상됩니다. 파워로보틱스는 하이브리드 로봇 시스템과 AI 기반 기술로 차별화된 경쟁력을 보유하고 있습니다.
+              </div>
+            </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card span2">
+      <div class="card-title"><div class="icon orange">🏆</div> 경쟁 분석</div>
+      <table class="comp-table">
+      <thead>
+        <tr>
+          <th>항목</th>
+          <th class="highlight-col">(주)파워로보틱스</th>
+          <th>경쟁사 A</th>
+          <th>경쟁사 B</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>핵심 기술</td>
+          <td class="highlight-col">AI 및 비전 시스템을 기반으로 한 하이브리드 이형 부품 삽입 로봇 자동화 기술</td>
+          <td>범용 자동화 솔루션</td>
+          <td>대기업/글로벌 로봇 기업</td>
+        </tr>
+        <tr>
+          <td>투자 규모</td>
+          <td class="highlight-col">파워오토로보틱스는 35억원의 투자 유치를 통해 무인화 솔루션 혁신을 가속화하고 있음.</td>
+          <td>공개 정보 부족</td>
+          <td>공개 정보 부족</td>
+        </tr>
+        <tr>
+          <td>주요 고객</td>
+          <td class="highlight-col">파워오토로보틱스는 국내 대기업 및 다양한 업종의 고객사에게 자동화 솔루션을 납품하고 있으며, 글로벌 제조 산업의 패러다임 전환을 이끄는 기술 중심 기업으로 도약할 방침.</td>
+          <td>제조/물류 일반 고객군</td>
+          <td>대기업 고객군</td>
+        </tr>
+        <tr>
+          <td>차별점</td>
+          <td class="highlight-col">✅ 자율주행 기술과 SLAM을 활용하여 로봇의 자율성을 강화</td>
+          <td>로봇산업 내 제조업용 로봇 분야는 수출 비중이 높아 경쟁이 치열할 것으로 예상됩니다. 파워로보틱스는 하이브리...</td>
+          <td>브랜드/자본 우위 가능성</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon teal">✅</div> 투자 평가</div>
+      <div style="font-size:0.78rem; font-weight:700; color:#888; margin-bottom:8px;">기본 조건 평가</div>
+      <div class="score-grid" style="margin-bottom:14px;">
+        <div class="score-item"><span class="s-label">시장 규모</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">기술 차별성</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">팀/경쟁 역량</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">실적/재무 근거</span><span class="score-pill s-pass">충족</span></div>
+      </div>
+      <div style="font-size:0.78rem; font-weight:700; color:#888; margin-bottom:8px;">점수 평가</div>
+      <div class="score-grid">
+        <div class="score-item"><span class="s-label">기술력</span><span class="score-pill s-num">24/30</span></div>
+        <div class="score-item"><span class="s-label">시장성</span><span class="score-pill s-num">20/25</span></div>
+        <div class="score-item"><span class="s-label">경쟁력</span><span class="score-pill s-num">20/25</span></div>
+        <div class="score-item"><span class="s-label">실적</span><span class="score-pill s-num">16/20</span></div>
+      </div>
+      <div class="verdict-box">
+        <div class="v-label">최종 투자 의견</div>
+        <div class="v-val verdict-blue">적극 투자</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon gray">📌</div> 한계점</div>
+      <div class="limit-list">
+        <span class="limit-chip">공개 데이터만 사용</span>
+<span class="limit-chip">시장 상황 변동 가능</span>
+<span class="limit-chip">특허 또는 독자 기술 증빙</span>
+<span class="limit-chip">특허/IP 근거 부족</span>
+      </div>
+    </div>
+
+    <div class="card span2">
+      <div class="card-title"><div class="icon blue">📚</div> 참고 자료</div>
+      <div class="ref-list">
+        <div class="ref-item"><span>📄</span><a href="https://www.pa-robotics.co.kr/patent/" target="_blank" rel="noopener noreferrer">https://www.pa-robotics.co.kr/patent/</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.innoforest.co.kr/company/CP00014663/%ED%8C%8C%EC%9B%8C%EC%98%A4%ED%86%A0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4" target="_blank" rel="noopener noreferrer">https://www.innoforest.co.kr/company/CP00014663/%ED%8C%8C%EC%9B%8C%EC%98%A4%ED%86%A0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4</a></div>
+<div class="ref-item"><span>📄</span><a href="https://thevc.kr/powerautorobotics" target="_blank" rel="noopener noreferrer">https://thevc.kr/powerautorobotics</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.startuptoday.co.kr/news/articleView.html?idxno=587271" target="_blank" rel="noopener noreferrer">https://www.startuptoday.co.kr/news/articleView.html?idxno=587271</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.sisaweek.com/news/articleView.html?idxno=232374" target="_blank" rel="noopener noreferrer">https://www.sisaweek.com/news/articleView.html?idxno=232374</a></div>
+      </div>
+    </div>
+  </div>
+</section><section class="company-section" id="company-2">
+  <div class="report-header">
+    <div>
+      <h1>🤖 2. 고레로보틱스 주식회사</h1>
+      <p>로봇 스타트업 투자 분석 보고서 &nbsp;·&nbsp; 2026년 3월</p>
+    </div>
+    <div class="header-badge">
+      <div class="score score-green">76<span style="font-size:1.2rem">/100</span></div>
+      <div class="score-label">종합 투자 점수</div>
+      <div class="verdict-tag tag-green">투자 가능</div>
+    </div>
+  </div>
+
+  <div class="summary-strip">
+    <div class="strip-card">
+      <div class="label">핵심 사업</div>
+      <div class="value">산업용 로봇 제조업 / 건설현장 야간 무인양중 로봇</div>
+    </div>
+    <div class="strip-card">
+      <div class="label">핵심 장점</div>
+      <div class="tag-list">
+        <span class="tag green">강점1: 건축 도면 기반의 자율주행 기술로 건설 현장의 특수성을 고려한 설계</span>
+<span class="tag green">강점2: 엘리베이터를 이용한 다층 자재 운반 기능으로 공사 기간 단축과 원가 절감 가능</span>
+<span class="tag green">건축 도면 기반의 경로 계획 및 장애물 회피 기술로 건설 산업에 특화된 자율주행 로봇</span>
+      </div>
+    </div>
+    <div class="strip-card">
+      <div class="label">위험 요소</div>
+      <div class="tag-list">
+        <span class="tag red">약점/리스크1: 특허/IP 정보가 없어 기술 보호에 대한 리스크 존재</span>
+<span class="tag red">약점/리스크2: 기술 성숙도가 TRL 6으로, 완전한 상용화까지 추가적인 검증 필요</span>
+<span class="tag red">기술 성숙도 부족으로 인한 상용화 지연 가능성, 특허/IP 정보 부족으로 인한 경쟁사 모방 위험</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon blue">🏢</div> 기업 소개</div>
+      <div class="info-row"><span class="key">설립 연도</span><span class="val">2023</span></div>
+      <div class="info-row"><span class="key">본사 위치</span><span class="val">서울 / 서울특별시 마포구</span></div>
+      <div class="info-row"><span class="key">대표자</span><span class="val">이동민</span></div>
+      <div class="info-row"><span class="key">투자 유치</span><span class="val">고레로보틱스는 CES 2024 혁신상을 수상한 국내 스타트업 중 유일하게 해외 투자 유치에 성공, 일본계 VC인 SBVA의 투자를 유치함., 고레로보틱스는 미국 실리콘밸리 VC 등에서 12억 원의 시드투자를 유치받았으며, UCLA RoMeLa 연구소와 MOU를 체결함.</span></div>
+      <div class="info-row"><span class="key">해결 문제</span><span class="val">산업용 로봇 제조업 / 건설현장 야간 무인양중 로봇</span></div>
+    </div>
+
+    <div class="card span2">
+      <div class="card-title"><div class="icon purple">⚙️</div> 기술 분석</div>
+      <div class="tech-grid">
+        <div class="tech-item"><div class="t-label">로봇 기술 구조</div><div class="t-val">모듈형/현장 최적화 구조</div></div>
+        <div class="tech-item"><div class="t-label">AI 기술</div><div class="t-val">건축 도면 기반의 자율주행 및 장애물 회피 기술을 갖춘 건설현장 자재 운반 로봇</div></div>
+        <div class="tech-item"><div class="t-label">센서 기술</div><div class="t-val">건설현장 야간 무인양중 로봇</div></div>
+        <div class="tech-item"><div class="t-label">특허</div><div class="t-val">공개 정보 부족</div></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="card-title" style="margin-bottom:10px; border-bottom:none; padding-bottom:0;">경쟁사 대비 기술 장점</div>
+        <ul class="bullet-list">
+<li>강점1: 건축 도면 기반의 자율주행 기술로 건설 현장의 특수성을 고려한 설계</li>
+<li>강점2: 엘리베이터를 이용한 다층 자재 운반 기능으로 공사 기간 단축과 원가 절감 가능</li>
+<li>건축 도면 기반의 경로 계획 및 장애물 회피 기술로 건설 산업에 특화된 자율주행 로봇</li>
+</ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card span2">
+      <div class="card-title"><div class="icon green">📊</div> 시장 분석</div>
+      <div class="market-stats">
+        <div class="m-stat"><div class="m-num">2024년 로봇산업 수출액은 5,215억 원으로 전년 대비 1.1% 증가하였으며, 제조업용 로봇이 61.1%의 비중을 차지한다.</div><div class="m-unit">시장 규모/설명</div></div>
+        <div class="m-stat"><div class="m-num">건설 산업의 자동화 수요 증가, 제조업용 로봇의 수출 증가</div><div class="m-unit">주요 성장 동인</div></div>
+        <div class="m-stat"><div class="m-num">건설 산업, 제조업</div><div class="m-unit">주요 수요 산업</div></div>
+      </div>
+      <ul class="bullet-list">
+        <li>주요 산업: 건설 산업, 제조업</li>
+        <li>시장 성장 동인: 건설 산업의 자동화 수요 증가, 제조업용 로봇의 수출 증가</li>
+        <li>시장 위험 요소: 기술 성숙도 부족으로 인한 상용화 지연 가능성, 특허/IP 정보 부족으로 인한 경쟁사 모방 위험</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon red">⚠️</div> 위험 요소</div>
+      <div class="risk-list">
+        <div class="risk-item">
+              <div class="r-icon">🔧</div>
+              <div class="r-text">
+                <div class="r-title">기술 리스크</div>
+                약점/리스크1: 특허/IP 정보가 없어 기술 보호에 대한 리스크 존재
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">📋</div>
+              <div class="r-text">
+                <div class="r-title">사업화 리스크</div>
+                기술 성숙도 부족으로 인한 상용화 지연 가능성, 특허/IP 정보 부족으로 인한 경쟁사 모방 위험
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">💸</div>
+              <div class="r-text">
+                <div class="r-title">근거 부족</div>
+                고객사 또는 파일럿 도입 정보
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">⚔️</div>
+              <div class="r-text">
+                <div class="r-title">경쟁 리스크</div>
+                로봇산업 내 제조업용 로봇의 수출 비중이 높아 경쟁이 치열할 수 있다. 그러나 고레로보틱스의 특화된 건설현장 자율주행 로봇은 차별화된 경쟁력을 제공할 수 있다.
+              </div>
+            </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card span2">
+      <div class="card-title"><div class="icon orange">🏆</div> 경쟁 분석</div>
+      <table class="comp-table">
+      <thead>
+        <tr>
+          <th>항목</th>
+          <th class="highlight-col">고레로보틱스 주식회사</th>
+          <th>경쟁사 A</th>
+          <th>경쟁사 B</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>핵심 기술</td>
+          <td class="highlight-col">건축 도면 기반의 자율주행 및 장애물 회피 기술을 갖춘 건설현장 자재 운반 로봇</td>
+          <td>범용 자동화 솔루션</td>
+          <td>대기업/글로벌 로봇 기업</td>
+        </tr>
+        <tr>
+          <td>투자 규모</td>
+          <td class="highlight-col">고레로보틱스는 CES 2024 혁신상을 수상한 국내 스타트업 중 유일하게 해외 투자 유치에 성공, 일본계 VC인 SBVA의 투자를 유치함., 고레로보틱스는 미국 실리콘밸리 VC 등에서 12억 원의 시드투자를 유치받았으며, UCLA RoMeLa 연구소와 MOU를 체결함.</td>
+          <td>공개 정보 부족</td>
+          <td>공개 정보 부족</td>
+        </tr>
+        <tr>
+          <td>주요 고객</td>
+          <td class="highlight-col">공개 정보 부족</td>
+          <td>제조/물류 일반 고객군</td>
+          <td>대기업 고객군</td>
+        </tr>
+        <tr>
+          <td>차별점</td>
+          <td class="highlight-col">✅ 건축 도면 기반의 경로 계획 및 장애물 회피 기술로 건설 산업에 특화된 자율주행 로봇</td>
+          <td>로봇산업 내 제조업용 로봇의 수출 비중이 높아 경쟁이 치열할 수 있다. 그러나 고레로보틱스의 특화된 건설현장...</td>
+          <td>브랜드/자본 우위 가능성</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon teal">✅</div> 투자 평가</div>
+      <div style="font-size:0.78rem; font-weight:700; color:#888; margin-bottom:8px;">기본 조건 평가</div>
+      <div class="score-grid" style="margin-bottom:14px;">
+        <div class="score-item"><span class="s-label">시장 규모</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">기술 차별성</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">팀/경쟁 역량</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">실적/재무 근거</span><span class="score-pill s-pass">충족</span></div>
+      </div>
+      <div style="font-size:0.78rem; font-weight:700; color:#888; margin-bottom:8px;">점수 평가</div>
+      <div class="score-grid">
+        <div class="score-item"><span class="s-label">기술력</span><span class="score-pill s-num">24/30</span></div>
+        <div class="score-item"><span class="s-label">시장성</span><span class="score-pill s-num">20/25</span></div>
+        <div class="score-item"><span class="s-label">경쟁력</span><span class="score-pill s-num">15/25</span></div>
+        <div class="score-item"><span class="s-label">실적</span><span class="score-pill s-num">16/20</span></div>
+      </div>
+      <div class="verdict-box">
+        <div class="v-label">최종 투자 의견</div>
+        <div class="v-val verdict-green">투자 가능</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon gray">📌</div> 한계점</div>
+      <div class="limit-list">
+        <span class="limit-chip">공개 데이터만 사용</span>
+<span class="limit-chip">시장 상황 변동 가능</span>
+<span class="limit-chip">고객사 또는 파일럿 도입 정보</span>
+<span class="limit-chip">특허 또는 독자 기술 증빙</span>
+<span class="limit-chip">고객사/도입 실적 정보 부족</span>
+<span class="limit-chip">특허/IP 근거 부족</span>
+<span class="limit-chip">최신 웹 검색 보완 필요</span>
+      </div>
+    </div>
+
+    <div class="card span2">
+      <div class="card-title"><div class="icon blue">📚</div> 참고 자료</div>
+      <div class="ref-list">
+        <div class="ref-item"><span>📄</span><a href="https://www.pa-robotics.co.kr/patent/" target="_blank" rel="noopener noreferrer">https://www.pa-robotics.co.kr/patent/</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.innoforest.co.kr/company/CP00014663/%ED%8C%8C%EC%9B%8C%EC%98%A4%ED%86%A0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4" target="_blank" rel="noopener noreferrer">https://www.innoforest.co.kr/company/CP00014663/%ED%8C%8C%EC%9B%8C%EC%98%A4%ED%86%A0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4</a></div>
+<div class="ref-item"><span>📄</span><a href="https://thevc.kr/powerautorobotics" target="_blank" rel="noopener noreferrer">https://thevc.kr/powerautorobotics</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.startuptoday.co.kr/news/articleView.html?idxno=587271" target="_blank" rel="noopener noreferrer">https://www.startuptoday.co.kr/news/articleView.html?idxno=587271</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.sisaweek.com/news/articleView.html?idxno=232374" target="_blank" rel="noopener noreferrer">https://www.sisaweek.com/news/articleView.html?idxno=232374</a></div>
+      </div>
+    </div>
+  </div>
+</section><section class="company-section" id="company-3">
+  <div class="report-header">
+    <div>
+      <h1>🤖 3. (주)지오로봇</h1>
+      <p>로봇 스타트업 투자 분석 보고서 &nbsp;·&nbsp; 2026년 3월</p>
+    </div>
+    <div class="header-badge">
+      <div class="score score-orange">69<span style="font-size:1.2rem">/100</span></div>
+      <div class="score-label">종합 투자 점수</div>
+      <div class="verdict-tag tag-orange">보류</div>
+    </div>
+  </div>
+
+  <div class="summary-strip">
+    <div class="strip-card">
+      <div class="label">핵심 사업</div>
+      <div class="value">산업용 로봇 제조업 / 물류로봇</div>
+    </div>
+    <div class="strip-card">
+      <div class="label">핵심 장점</div>
+      <div class="tag-list">
+        <span class="tag green">강점1: 자율주행 및 AI 기술을 기반으로 한 고하중 물류 로봇 개발로 시장 경쟁력 확보</span>
+<span class="tag green">강점2: 모듈형 설계로 다양한 환경에 적응할 수 있는 유연성 제공</span>
+<span class="tag green">자체 개발된 AI 기반 소프트웨어와 로봇 플랫폼의 결합을 통한 인간과 로봇의 상호 증강 기술 개발</span>
+      </div>
+    </div>
+    <div class="strip-card">
+      <div class="label">위험 요소</div>
+      <div class="tag-list">
+        <span class="tag red">약점/리스크1: 특허/IP 정보 부족으로 인한 기술 보호의 한계</span>
+<span class="tag red">약점/리스크2: 기술 성숙도가 TRL 6 수준으로, 상용화까지 추가적인 개발 필요</span>
+<span class="tag red">특허/IP 정보 부족, 기술 성숙도 TRL 6 수준으로 상용화까지 추가 개발 필요</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon blue">🏢</div> 기업 소개</div>
+      <div class="info-row"><span class="key">설립 연도</span><span class="val">2022</span></div>
+      <div class="info-row"><span class="key">본사 위치</span><span class="val">대구 / 대구광역시 달성군</span></div>
+      <div class="info-row"><span class="key">대표자</span><span class="val">강**</span></div>
+      <div class="info-row"><span class="key">투자 유치</span><span class="val">지오로봇은 누적 투자금 40억 원을 달성하였으며, AMR 시장에서 새로운 지평을 열고 있음.</span></div>
+      <div class="info-row"><span class="key">해결 문제</span><span class="val">산업용 로봇 제조업 / 물류로봇</span></div>
+    </div>
+
+    <div class="card span2">
+      <div class="card-title"><div class="icon purple">⚙️</div> 기술 분석</div>
+      <div class="tech-grid">
+        <div class="tech-item"><div class="t-label">로봇 기술 구조</div><div class="t-val">모듈형/현장 최적화 구조</div></div>
+        <div class="tech-item"><div class="t-label">AI 기술</div><div class="t-val">자율주행 및 AI 기반의 고하중 물류 로봇 기술</div></div>
+        <div class="tech-item"><div class="t-label">센서 기술</div><div class="t-val">물류로봇</div></div>
+        <div class="tech-item"><div class="t-label">특허</div><div class="t-val">공개 정보 부족</div></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="card-title" style="margin-bottom:10px; border-bottom:none; padding-bottom:0;">경쟁사 대비 기술 장점</div>
+        <ul class="bullet-list">
+<li>강점1: 자율주행 및 AI 기술을 기반으로 한 고하중 물류 로봇 개발로 시장 경쟁력 확보</li>
+<li>강점2: 모듈형 설계로 다양한 환경에 적응할 수 있는 유연성 제공</li>
+<li>자체 개발된 AI 기반 소프트웨어와 로봇 플랫폼의 결합을 통한 인간과 로봇의 상호 증강 기술 개발</li>
+</ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card span2">
+      <div class="card-title"><div class="icon green">📊</div> 시장 분석</div>
+      <div class="market-stats">
+        <div class="m-stat"><div class="m-num">2024년 로봇산업 수출액은 5,215억 원으로 전년 대비 1.1% 증가했다.</div><div class="m-unit">시장 규모/설명</div></div>
+        <div class="m-stat"><div class="m-num">로봇시스템의 수출 증가, 제조업용 로봇의 수입 증가</div><div class="m-unit">주요 성장 동인</div></div>
+        <div class="m-stat"><div class="m-num">물류센터, 병원, 호텔</div><div class="m-unit">주요 수요 산업</div></div>
+      </div>
+      <ul class="bullet-list">
+        <li>주요 산업: 물류센터, 병원, 호텔</li>
+        <li>시장 성장 동인: 로봇시스템의 수출 증가, 제조업용 로봇의 수입 증가</li>
+        <li>시장 위험 요소: 특허/IP 정보 부족, 기술 성숙도 TRL 6 수준으로 상용화까지 추가 개발 필요</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon red">⚠️</div> 위험 요소</div>
+      <div class="risk-list">
+        <div class="risk-item">
+              <div class="r-icon">🔧</div>
+              <div class="r-text">
+                <div class="r-title">기술 리스크</div>
+                약점/리스크1: 특허/IP 정보 부족으로 인한 기술 보호의 한계
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">📋</div>
+              <div class="r-text">
+                <div class="r-title">사업화 리스크</div>
+                특허/IP 정보 부족, 기술 성숙도 TRL 6 수준으로 상용화까지 추가 개발 필요
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">💸</div>
+              <div class="r-text">
+                <div class="r-title">근거 부족</div>
+                고객사 또는 파일럿 도입 정보
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">⚔️</div>
+              <div class="r-text">
+                <div class="r-title">경쟁 리스크</div>
+                로봇산업 내에서 제조업용 로봇과 로봇시스템의 경쟁이 치열하며, 지오로봇은 자율주행과 AI 기술을 통해 차별화를 시도하고 있다. 그러나 특허/IP 정보가 부족하여 기술 보호 측면에서의 리스크가 존재한다.
+              </div>
+            </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card span2">
+      <div class="card-title"><div class="icon orange">🏆</div> 경쟁 분석</div>
+      <table class="comp-table">
+      <thead>
+        <tr>
+          <th>항목</th>
+          <th class="highlight-col">(주)지오로봇</th>
+          <th>경쟁사 A</th>
+          <th>경쟁사 B</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>핵심 기술</td>
+          <td class="highlight-col">자율주행 및 AI 기반의 고하중 물류 로봇 기술</td>
+          <td>범용 자동화 솔루션</td>
+          <td>대기업/글로벌 로봇 기업</td>
+        </tr>
+        <tr>
+          <td>투자 규모</td>
+          <td class="highlight-col">지오로봇은 누적 투자금 40억 원을 달성하였으며, AMR 시장에서 새로운 지평을 열고 있음.</td>
+          <td>공개 정보 부족</td>
+          <td>공개 정보 부족</td>
+        </tr>
+        <tr>
+          <td>주요 고객</td>
+          <td class="highlight-col">공개 정보 부족</td>
+          <td>제조/물류 일반 고객군</td>
+          <td>대기업 고객군</td>
+        </tr>
+        <tr>
+          <td>차별점</td>
+          <td class="highlight-col">✅ 자체 개발된 AI 기반 소프트웨어와 로봇 플랫폼의 결합을 통한 인간과 로봇의 상호 증강 기술 개발</td>
+          <td>로봇산업 내에서 제조업용 로봇과 로봇시스템의 경쟁이 치열하며, 지오로봇은 자율주행과 AI 기술을 통해 차별화...</td>
+          <td>브랜드/자본 우위 가능성</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon teal">✅</div> 투자 평가</div>
+      <div style="font-size:0.78rem; font-weight:700; color:#888; margin-bottom:8px;">기본 조건 평가</div>
+      <div class="score-grid" style="margin-bottom:14px;">
+        <div class="score-item"><span class="s-label">시장 규모</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">기술 차별성</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">팀/경쟁 역량</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">실적/재무 근거</span><span class="score-pill s-pass">충족</span></div>
+      </div>
+      <div style="font-size:0.78rem; font-weight:700; color:#888; margin-bottom:8px;">점수 평가</div>
+      <div class="score-grid">
+        <div class="score-item"><span class="s-label">기술력</span><span class="score-pill s-num">24/30</span></div>
+        <div class="score-item"><span class="s-label">시장성</span><span class="score-pill s-num">15/25</span></div>
+        <div class="score-item"><span class="s-label">경쟁력</span><span class="score-pill s-num">15/25</span></div>
+        <div class="score-item"><span class="s-label">실적</span><span class="score-pill s-num">16/20</span></div>
+      </div>
+      <div class="verdict-box">
+        <div class="v-label">최종 투자 의견</div>
+        <div class="v-val verdict-orange">보류</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon gray">📌</div> 한계점</div>
+      <div class="limit-list">
+        <span class="limit-chip">공개 데이터만 사용</span>
+<span class="limit-chip">시장 상황 변동 가능</span>
+<span class="limit-chip">고객사 또는 파일럿 도입 정보</span>
+<span class="limit-chip">특허 또는 독자 기술 증빙</span>
+<span class="limit-chip">고객사/도입 실적 정보 부족</span>
+<span class="limit-chip">특허/IP 근거 부족</span>
+<span class="limit-chip">최신 웹 검색 보완 필요</span>
+      </div>
+    </div>
+
+    <div class="card span2">
+      <div class="card-title"><div class="icon blue">📚</div> 참고 자료</div>
+      <div class="ref-list">
+        <div class="ref-item"><span>📄</span><a href="https://www.pa-robotics.co.kr/patent/" target="_blank" rel="noopener noreferrer">https://www.pa-robotics.co.kr/patent/</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.innoforest.co.kr/company/CP00014663/%ED%8C%8C%EC%9B%8C%EC%98%A4%ED%86%A0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4" target="_blank" rel="noopener noreferrer">https://www.innoforest.co.kr/company/CP00014663/%ED%8C%8C%EC%9B%8C%EC%98%A4%ED%86%A0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4</a></div>
+<div class="ref-item"><span>📄</span><a href="https://thevc.kr/powerautorobotics" target="_blank" rel="noopener noreferrer">https://thevc.kr/powerautorobotics</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.startuptoday.co.kr/news/articleView.html?idxno=587271" target="_blank" rel="noopener noreferrer">https://www.startuptoday.co.kr/news/articleView.html?idxno=587271</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.sisaweek.com/news/articleView.html?idxno=232374" target="_blank" rel="noopener noreferrer">https://www.sisaweek.com/news/articleView.html?idxno=232374</a></div>
+      </div>
+    </div>
+  </div>
+</section><section class="company-section" id="company-4">
+  <div class="report-header">
+    <div>
+      <h1>🤖 4. (주)로보프린트(Roboprint Co.,Ltd)</h1>
+      <p>로봇 스타트업 투자 분석 보고서 &nbsp;·&nbsp; 2026년 3월</p>
+    </div>
+    <div class="header-badge">
+      <div class="score score-orange">61<span style="font-size:1.2rem">/100</span></div>
+      <div class="score-label">종합 투자 점수</div>
+      <div class="verdict-tag tag-orange">보류</div>
+    </div>
+  </div>
+
+  <div class="summary-strip">
+    <div class="strip-card">
+      <div class="label">핵심 사업</div>
+      <div class="value">산업용 로봇 제조업 / 산업용로보트</div>
+    </div>
+    <div class="strip-card">
+      <div class="label">핵심 장점</div>
+      <div class="tag-list">
+        <span class="tag green">강점1: 세계 최초의 건설용 프린팅 로봇 개발로 시장 선도</span>
+<span class="tag green">강점2: 고급 센서 기술과 AI 기반 비전 시스템을 통한 정밀 작업 수행 능력</span>
+<span class="tag green">건설 현장에서의 효율성을 높이고 인력을 대체할 수 있는 혁신적인 로봇 솔루션 제공</span>
+      </div>
+    </div>
+    <div class="strip-card">
+      <div class="label">위험 요소</div>
+      <div class="tag-list">
+        <span class="tag red">약점/리스크1: 기술 성숙도는 TRL 7 수준으로 상용화 초기 단계에 있어 시장 확장에 리스크 존재</span>
+<span class="tag red">약점/리스크2: 글로벌 진출 계획이 있으나, 현재까지의 해외 시장 진출 성과는 정보 부족</span>
+<span class="tag red">기술 발전 속도에 따른 경쟁 심화, 특허 분쟁 가능성</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon blue">🏢</div> 기업 소개</div>
+      <div class="info-row"><span class="key">설립 연도</span><span class="val">2010</span></div>
+      <div class="info-row"><span class="key">본사 위치</span><span class="val">대구 / 대구광역시 수성구</span></div>
+      <div class="info-row"><span class="key">대표자</span><span class="val">박**</span></div>
+      <div class="info-row"><span class="key">투자 유치</span><span class="val">로보프린트는 80억 시리즈C 투자 유치를 시도 중이며, 과거 벤처캐피탈 및 사모펀드 투자 유치는 없었다.</span></div>
+      <div class="info-row"><span class="key">해결 문제</span><span class="val">산업용 로봇 제조업 / 산업용로보트</span></div>
+    </div>
+
+    <div class="card span2">
+      <div class="card-title"><div class="icon purple">⚙️</div> 기술 분석</div>
+      <div class="tech-grid">
+        <div class="tech-item"><div class="t-label">로봇 기술 구조</div><div class="t-val">모듈형/현장 최적화 구조</div></div>
+        <div class="tech-item"><div class="t-label">AI 기술</div><div class="t-val">로봇 제어 시스템과 자동화 기술을 기반으로 한 건설용 프린팅 및 도장 로봇 기술</div></div>
+        <div class="tech-item"><div class="t-label">센서 기술</div><div class="t-val">산업용로보트</div></div>
+        <div class="tech-item"><div class="t-label">특허</div><div class="t-val">공개 정보 부족</div></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="card-title" style="margin-bottom:10px; border-bottom:none; padding-bottom:0;">경쟁사 대비 기술 장점</div>
+        <ul class="bullet-list">
+<li>강점1: 세계 최초의 건설용 프린팅 로봇 개발로 시장 선도</li>
+<li>강점2: 고급 센서 기술과 AI 기반 비전 시스템을 통한 정밀 작업 수행 능력</li>
+<li>건설 현장에서의 효율성을 높이고 인력을 대체할 수 있는 혁신적인 로봇 솔루션 제공</li>
+</ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card span2">
+      <div class="card-title"><div class="icon green">📊</div> 시장 분석</div>
+      <div class="market-stats">
+        <div class="m-stat"><div class="m-num">2024년 기준 로봇산업 수출액은 1조 5,215억 원으로 전년 대비 1.1% 증가하였다.</div><div class="m-unit">시장 규모/설명</div></div>
+        <div class="m-stat"><div class="m-num">전문서비스용 로봇과 제조업용 로봇의 수출 증가, 로봇산업 관련 인력 증가</div><div class="m-unit">주요 성장 동인</div></div>
+        <div class="m-stat"><div class="m-num">건설업, 제조업</div><div class="m-unit">주요 수요 산업</div></div>
+      </div>
+      <ul class="bullet-list">
+        <li>주요 산업: 건설업, 제조업</li>
+        <li>시장 성장 동인: 전문서비스용 로봇과 제조업용 로봇의 수출 증가, 로봇산업 관련 인력 증가</li>
+        <li>시장 위험 요소: 기술 발전 속도에 따른 경쟁 심화, 특허 분쟁 가능성</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon red">⚠️</div> 위험 요소</div>
+      <div class="risk-list">
+        <div class="risk-item">
+              <div class="r-icon">🔧</div>
+              <div class="r-text">
+                <div class="r-title">기술 리스크</div>
+                약점/리스크1: 기술 성숙도는 TRL 7 수준으로 상용화 초기 단계에 있어 시장 확장에 리스크 존재
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">📋</div>
+              <div class="r-text">
+                <div class="r-title">사업화 리스크</div>
+                기술 발전 속도에 따른 경쟁 심화, 특허 분쟁 가능성
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">💸</div>
+              <div class="r-text">
+                <div class="r-title">근거 부족</div>
+                고객사 또는 파일럿 도입 정보
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">⚔️</div>
+              <div class="r-text">
+                <div class="r-title">경쟁 리스크</div>
+                로봇산업 내에서 전문서비스용 로봇과 제조업용 로봇 분야는 경쟁이 치열하며, 로보프린트는 특허와 기술력을 바탕으로 차별화된 제품을 제공하고 있다. 그러나 시장 내 다른 경쟁자들도 지속적으로 기술을 발전시키고 있어 경쟁이 심화될 가능성이 있다.
+              </div>
+            </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card span2">
+      <div class="card-title"><div class="icon orange">🏆</div> 경쟁 분석</div>
+      <table class="comp-table">
+      <thead>
+        <tr>
+          <th>항목</th>
+          <th class="highlight-col">(주)로보프린트(Roboprint Co.,Ltd)</th>
+          <th>경쟁사 A</th>
+          <th>경쟁사 B</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>핵심 기술</td>
+          <td class="highlight-col">로봇 제어 시스템과 자동화 기술을 기반으로 한 건설용 프린팅 및 도장 로봇 기술</td>
+          <td>범용 자동화 솔루션</td>
+          <td>대기업/글로벌 로봇 기업</td>
+        </tr>
+        <tr>
+          <td>투자 규모</td>
+          <td class="highlight-col">로보프린트는 80억 시리즈C 투자 유치를 시도 중이며, 과거 벤처캐피탈 및 사모펀드 투자 유치는 없었다.</td>
+          <td>공개 정보 부족</td>
+          <td>공개 정보 부족</td>
+        </tr>
+        <tr>
+          <td>주요 고객</td>
+          <td class="highlight-col">공개 정보 부족</td>
+          <td>제조/물류 일반 고객군</td>
+          <td>대기업 고객군</td>
+        </tr>
+        <tr>
+          <td>차별점</td>
+          <td class="highlight-col">✅ 건설 현장에서의 효율성을 높이고 인력을 대체할 수 있는 혁신적인 로봇 솔루션 제공</td>
+          <td>로봇산업 내에서 전문서비스용 로봇과 제조업용 로봇 분야는 경쟁이 치열하며, 로보프린트는 특허와 기술력을 바탕...</td>
+          <td>브랜드/자본 우위 가능성</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon teal">✅</div> 투자 평가</div>
+      <div style="font-size:0.78rem; font-weight:700; color:#888; margin-bottom:8px;">기본 조건 평가</div>
+      <div class="score-grid" style="margin-bottom:14px;">
+        <div class="score-item"><span class="s-label">시장 규모</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">기술 차별성</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">팀/경쟁 역량</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">실적/재무 근거</span><span class="score-pill s-fail">미충족</span></div>
+      </div>
+      <div style="font-size:0.78rem; font-weight:700; color:#888; margin-bottom:8px;">점수 평가</div>
+      <div class="score-grid">
+        <div class="score-item"><span class="s-label">기술력</span><span class="score-pill s-num">24/30</span></div>
+        <div class="score-item"><span class="s-label">시장성</span><span class="score-pill s-num">15/25</span></div>
+        <div class="score-item"><span class="s-label">경쟁력</span><span class="score-pill s-num">15/25</span></div>
+        <div class="score-item"><span class="s-label">실적</span><span class="score-pill s-num">8/20</span></div>
+      </div>
+      <div class="verdict-box">
+        <div class="v-label">최종 투자 의견</div>
+        <div class="v-val verdict-orange">보류</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon gray">📌</div> 한계점</div>
+      <div class="limit-list">
+        <span class="limit-chip">공개 데이터만 사용</span>
+<span class="limit-chip">시장 상황 변동 가능</span>
+<span class="limit-chip">고객사 또는 파일럿 도입 정보</span>
+<span class="limit-chip">특허 또는 독자 기술 증빙</span>
+<span class="limit-chip">고객사/도입 실적 정보 부족</span>
+<span class="limit-chip">특허/IP 근거 부족</span>
+<span class="limit-chip">최신 웹 검색 보완 필요</span>
+      </div>
+    </div>
+
+    <div class="card span2">
+      <div class="card-title"><div class="icon blue">📚</div> 참고 자료</div>
+      <div class="ref-list">
+        <div class="ref-item"><span>📄</span><a href="https://www.pa-robotics.co.kr/patent/" target="_blank" rel="noopener noreferrer">https://www.pa-robotics.co.kr/patent/</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.innoforest.co.kr/company/CP00014663/%ED%8C%8C%EC%9B%8C%EC%98%A4%ED%86%A0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4" target="_blank" rel="noopener noreferrer">https://www.innoforest.co.kr/company/CP00014663/%ED%8C%8C%EC%9B%8C%EC%98%A4%ED%86%A0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4</a></div>
+<div class="ref-item"><span>📄</span><a href="https://thevc.kr/powerautorobotics" target="_blank" rel="noopener noreferrer">https://thevc.kr/powerautorobotics</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.startuptoday.co.kr/news/articleView.html?idxno=587271" target="_blank" rel="noopener noreferrer">https://www.startuptoday.co.kr/news/articleView.html?idxno=587271</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.sisaweek.com/news/articleView.html?idxno=232374" target="_blank" rel="noopener noreferrer">https://www.sisaweek.com/news/articleView.html?idxno=232374</a></div>
+      </div>
+    </div>
+  </div>
+</section><section class="company-section" id="company-5">
+  <div class="report-header">
+    <div>
+      <h1>🤖 5. (주)필드로</h1>
+      <p>로봇 스타트업 투자 분석 보고서 &nbsp;·&nbsp; 2026년 3월</p>
+    </div>
+    <div class="header-badge">
+      <div class="score score-orange">61<span style="font-size:1.2rem">/100</span></div>
+      <div class="score-label">종합 투자 점수</div>
+      <div class="verdict-tag tag-orange">보류</div>
+    </div>
+  </div>
+
+  <div class="summary-strip">
+    <div class="strip-card">
+      <div class="label">핵심 사업</div>
+      <div class="value">산업용 로봇 제조업 / 자율주행 배송로봇</div>
+    </div>
+    <div class="strip-card">
+      <div class="label">핵심 장점</div>
+      <div class="tag-list">
+        <span class="tag green">강점1: 우주 로봇 기술을 기반으로 한 독창적인 로봇 플랫폼 개발</span>
+<span class="tag green">강점2: AI 기반 경로 최적화 기술로 자율주행 로봇의 안정성과 효율성 향상</span>
+<span class="tag green">우주 로봇 기술을 기반으로 한 독창적인 로봇 플랫폼</span>
+      </div>
+    </div>
+    <div class="strip-card">
+      <div class="label">위험 요소</div>
+      <div class="tag-list">
+        <span class="tag red">약점/리스크1: 특허/IP 정보 부족</span>
+<span class="tag red">약점/리스크2: 투자 현황 및 고객 레퍼런스 정보 부족</span>
+<span class="tag red">기술 성숙도 부족, 특허/IP 보호 부족</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon blue">🏢</div> 기업 소개</div>
+      <div class="info-row"><span class="key">설립 연도</span><span class="val">2022</span></div>
+      <div class="info-row"><span class="key">본사 위치</span><span class="val">대전 / 대전광역시 유성구</span></div>
+      <div class="info-row"><span class="key">대표자</span><span class="val">송**</span></div>
+      <div class="info-row"><span class="key">투자 유치</span><span class="val">공개 정보 부족</span></div>
+      <div class="info-row"><span class="key">해결 문제</span><span class="val">산업용 로봇 제조업 / 자율주행 배송로봇</span></div>
+    </div>
+
+    <div class="card span2">
+      <div class="card-title"><div class="icon purple">⚙️</div> 기술 분석</div>
+      <div class="tech-grid">
+        <div class="tech-item"><div class="t-label">로봇 기술 구조</div><div class="t-val">모듈형/현장 최적화 구조</div></div>
+        <div class="tech-item"><div class="t-label">AI 기술</div><div class="t-val">자율주행 배송로봇을 위한 모듈형 하드웨어와 AI 기반 소프트웨어</div></div>
+        <div class="tech-item"><div class="t-label">센서 기술</div><div class="t-val">자율주행 배송로봇</div></div>
+        <div class="tech-item"><div class="t-label">특허</div><div class="t-val">공개 정보 부족</div></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="card-title" style="margin-bottom:10px; border-bottom:none; padding-bottom:0;">경쟁사 대비 기술 장점</div>
+        <ul class="bullet-list">
+<li>강점1: 우주 로봇 기술을 기반으로 한 독창적인 로봇 플랫폼 개발</li>
+<li>강점2: AI 기반 경로 최적화 기술로 자율주행 로봇의 안정성과 효율성 향상</li>
+<li>우주 로봇 기술을 기반으로 한 독창적인 로봇 플랫폼</li>
+</ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card span2">
+      <div class="card-title"><div class="icon green">📊</div> 시장 분석</div>
+      <div class="market-stats">
+        <div class="m-stat"><div class="m-num">2024년 로봇산업 수출액은 5조 215억 원으로 전년 대비 1.1% 증가하였다.</div><div class="m-unit">시장 규모/설명</div></div>
+        <div class="m-stat"><div class="m-num">로봇시스템의 수출 증가, 제조업용 로봇의 높은 수출 비중</div><div class="m-unit">주요 성장 동인</div></div>
+        <div class="m-stat"><div class="m-num">물류 센터, 제조업, 서비스업</div><div class="m-unit">주요 수요 산업</div></div>
+      </div>
+      <ul class="bullet-list">
+        <li>주요 산업: 물류 센터, 제조업, 서비스업</li>
+        <li>시장 성장 동인: 로봇시스템의 수출 증가, 제조업용 로봇의 높은 수출 비중</li>
+        <li>시장 위험 요소: 기술 성숙도 부족, 특허/IP 보호 부족</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon red">⚠️</div> 위험 요소</div>
+      <div class="risk-list">
+        <div class="risk-item">
+              <div class="r-icon">🔧</div>
+              <div class="r-text">
+                <div class="r-title">기술 리스크</div>
+                약점/리스크1: 특허/IP 정보 부족
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">📋</div>
+              <div class="r-text">
+                <div class="r-title">사업화 리스크</div>
+                기술 성숙도 부족, 특허/IP 보호 부족
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">💸</div>
+              <div class="r-text">
+                <div class="r-title">근거 부족</div>
+                고객사 또는 파일럿 도입 정보
+              </div>
+            </div>
+<div class="risk-item">
+              <div class="r-icon">⚔️</div>
+              <div class="r-text">
+                <div class="r-title">경쟁 리스크</div>
+                로봇산업 내 경쟁은 치열하며, 특히 로봇시스템과 제조업용 로봇 분야에서의 경쟁이 두드러진다. 필드로는 자율주행 배송로봇을 통해 물류 자동화 시장에서 차별화된 경쟁력을 가질 수 있다.
+              </div>
+            </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card span2">
+      <div class="card-title"><div class="icon orange">🏆</div> 경쟁 분석</div>
+      <table class="comp-table">
+      <thead>
+        <tr>
+          <th>항목</th>
+          <th class="highlight-col">(주)필드로</th>
+          <th>경쟁사 A</th>
+          <th>경쟁사 B</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>핵심 기술</td>
+          <td class="highlight-col">자율주행 배송로봇을 위한 모듈형 하드웨어와 AI 기반 소프트웨어</td>
+          <td>범용 자동화 솔루션</td>
+          <td>대기업/글로벌 로봇 기업</td>
+        </tr>
+        <tr>
+          <td>투자 규모</td>
+          <td class="highlight-col">공개 정보 부족</td>
+          <td>공개 정보 부족</td>
+          <td>공개 정보 부족</td>
+        </tr>
+        <tr>
+          <td>주요 고객</td>
+          <td class="highlight-col">공개 정보 부족</td>
+          <td>제조/물류 일반 고객군</td>
+          <td>대기업 고객군</td>
+        </tr>
+        <tr>
+          <td>차별점</td>
+          <td class="highlight-col">✅ 우주 로봇 기술을 기반으로 한 독창적인 로봇 플랫폼</td>
+          <td>로봇산업 내 경쟁은 치열하며, 특히 로봇시스템과 제조업용 로봇 분야에서의 경쟁이 두드러진다. 필드로는 자율주...</td>
+          <td>브랜드/자본 우위 가능성</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon teal">✅</div> 투자 평가</div>
+      <div style="font-size:0.78rem; font-weight:700; color:#888; margin-bottom:8px;">기본 조건 평가</div>
+      <div class="score-grid" style="margin-bottom:14px;">
+        <div class="score-item"><span class="s-label">시장 규모</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">기술 차별성</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">팀/경쟁 역량</span><span class="score-pill s-pass">충족</span></div>
+        <div class="score-item"><span class="s-label">실적/재무 근거</span><span class="score-pill s-fail">미충족</span></div>
+      </div>
+      <div style="font-size:0.78rem; font-weight:700; color:#888; margin-bottom:8px;">점수 평가</div>
+      <div class="score-grid">
+        <div class="score-item"><span class="s-label">기술력</span><span class="score-pill s-num">24/30</span></div>
+        <div class="score-item"><span class="s-label">시장성</span><span class="score-pill s-num">15/25</span></div>
+        <div class="score-item"><span class="s-label">경쟁력</span><span class="score-pill s-num">15/25</span></div>
+        <div class="score-item"><span class="s-label">실적</span><span class="score-pill s-num">8/20</span></div>
+      </div>
+      <div class="verdict-box">
+        <div class="v-label">최종 투자 의견</div>
+        <div class="v-val verdict-orange">보류</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon gray">📌</div> 한계점</div>
+      <div class="limit-list">
+        <span class="limit-chip">공개 데이터만 사용</span>
+<span class="limit-chip">시장 상황 변동 가능</span>
+<span class="limit-chip">고객사 또는 파일럿 도입 정보</span>
+<span class="limit-chip">투자 유치 이력</span>
+<span class="limit-chip">특허 또는 독자 기술 증빙</span>
+<span class="limit-chip">고객사/도입 실적 정보 부족</span>
+<span class="limit-chip">투자 유치 이력 정보 부족</span>
+<span class="limit-chip">특허/IP 근거 부족</span>
+<span class="limit-chip">최신 웹 검색 보완 필요</span>
+      </div>
+    </div>
+
+    <div class="card span2">
+      <div class="card-title"><div class="icon blue">📚</div> 참고 자료</div>
+      <div class="ref-list">
+        <div class="ref-item"><span>📄</span><a href="https://www.pa-robotics.co.kr/patent/" target="_blank" rel="noopener noreferrer">https://www.pa-robotics.co.kr/patent/</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.innoforest.co.kr/company/CP00014663/%ED%8C%8C%EC%9B%8C%EC%98%A4%ED%86%A0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4" target="_blank" rel="noopener noreferrer">https://www.innoforest.co.kr/company/CP00014663/%ED%8C%8C%EC%9B%8C%EC%98%A4%ED%86%A0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4</a></div>
+<div class="ref-item"><span>📄</span><a href="https://thevc.kr/powerautorobotics" target="_blank" rel="noopener noreferrer">https://thevc.kr/powerautorobotics</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.startuptoday.co.kr/news/articleView.html?idxno=587271" target="_blank" rel="noopener noreferrer">https://www.startuptoday.co.kr/news/articleView.html?idxno=587271</a></div>
+<div class="ref-item"><span>📄</span><a href="https://www.sisaweek.com/news/articleView.html?idxno=232374" target="_blank" rel="noopener noreferrer">https://www.sisaweek.com/news/articleView.html?idxno=232374</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+</body>
+</html>

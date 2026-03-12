@@ -10,10 +10,8 @@ from langgraph.graph import END, StateGraph
 
 from agents.startup_search.agent import StartupSearchAgent
 from agents.investment_decision_agent import InvestmentDecisionAgent
-from agents.final_report_agent.agent import (
-    _build_company_report_section,
-    build_multi_company_html,
-)
+from agents.market_evaluation_agent import MarketEvaluationAgent
+from agents.final_report_agent.agent import _build_company_report_section, build_multi_company_html
 
 from .state import SupervisorState
 
@@ -317,6 +315,74 @@ def node_web_search(state: SupervisorState, cfg: SupervisorConfig) -> Supervisor
     return {"web_search_results": outs}
 
 
+def node_market_evaluation(state: SupervisorState, cfg: SupervisorConfig) -> SupervisorState:
+    """
+    시장성 평가 에이전트 노드.
+
+    - startup_search + 기술 요약을 바탕으로, market_eval vector store에서
+      시장/산업 보고서를 조회하고 LLM으로 시장성을 정리한다.
+    """
+    ss = state.get("startup_search") or {}
+    profiles = ss.get("startup_profiles") or []
+    selected = set(_select_startups(state, cfg))
+
+    if not profiles or not selected:
+        return {"market_evaluations": []}
+
+    outs: List[Dict[str, Any]] = []
+    agent = MarketEvaluationAgent()
+
+    for p in profiles:
+        if not isinstance(p, dict):
+            continue
+        name = (p.get("company_name") or "").strip()
+        if name not in selected:
+            continue
+
+        ov = p.get("company_overview") or {}
+        tech = p.get("technology") or {}
+
+        # 시장성 평가 쿼리: 사용자의 원 질문 + 회사 개요/기술 요약 요약본을 합쳐서 전달
+        user_query = (state.get("user_query") or "").strip()
+        market_query = user_query or (ov.get("industry") or "") or "로봇 시장성 평가"
+
+        company_context_parts = []
+        if ov.get("industry"):
+            company_context_parts.append(str(ov.get("industry")))
+        if ov.get("main_product"):
+            company_context_parts.append(str(ov.get("main_product")))
+        if tech.get("summary"):
+            company_context_parts.append(str(tech.get("summary")))
+        company_context = " / ".join(part.strip() for part in company_context_parts if part)
+
+        try:
+            out = agent(
+                {
+                    "startup_name": name,
+                    "market_query": market_query,
+                    "company_context": company_context,
+                    "top_k": 4,
+                }
+            )
+            outs.append(out)
+        except Exception as exc:
+            outs.append(
+                {
+                    "startup_name": name,
+                    "market_query": market_query,
+                    "search_query": "",
+                    "market_summary": f"시장성 평가 실패: {exc}",
+                    "market_size": "자료 부족",
+                    "growth_drivers": [],
+                    "competition_analysis": "자료 부족",
+                    "customer_adoption": "자료 부족",
+                    "key_risks": ["시장성 평가 에이전트 오류"],
+                    "evidence": [],
+                }
+            )
+
+    return {"market_evaluations": outs}
+
 def node_finalize_report(state: SupervisorState, cfg: SupervisorConfig) -> SupervisorState:
     """
     최종 HTML 보고서 생성.
@@ -336,8 +402,10 @@ def node_finalize_report(state: SupervisorState, cfg: SupervisorConfig) -> Super
     # lookup 테이블
     tech_summaries = state.get("technical_summaries") or []
     web_results = state.get("web_search_results") or []
+    market_evals = state.get("market_evaluations") or []
     tech_by_name = {o.get("startup_name"): o for o in tech_summaries if isinstance(o, dict)}
     web_by_name = {o.get("startup_name"): o for o in web_results if isinstance(o, dict)}
+    market_by_name = {o.get("startup_name"): o for o in market_evals if isinstance(o, dict)}
 
     def _as_str(v: Any) -> str:
         return str(v) if v is not None else ""
@@ -377,6 +445,10 @@ def node_finalize_report(state: SupervisorState, cfg: SupervisorConfig) -> Super
         competition_facts = ws.get("competition") or []
         performance_facts = ws.get("performance") or []
 
+        # 시장성 평가는 market_evaluation_agent 결과를 우선 사용하고,
+        # 부족한 경우에만 web-search facts로 보완한다.
+        me = market_by_name.get(primary_name) or {}
+
         # startup_search에서 온 RAG 참고 URL들
         rag_refs = []
         for url in profile.get("references") or []:
@@ -390,18 +462,21 @@ def node_finalize_report(state: SupervisorState, cfg: SupervisorConfig) -> Super
                 )
 
         exploration_summary = {
-            "competitor_summary": "\n".join(competition_facts) if competition_facts else "",
-            "traction_summary": "\n".join(performance_facts) if performance_facts else "",
-            # RAG 및 웹 검색에서 온 참고 자료를 함께 보관 (FinalReport에서 dedup)
+            "competitor_summary": me.get("competition_analysis")
+            or ("\n".join(competition_facts) if competition_facts else ""),
+            "traction_summary": me.get("customer_adoption")
+            or ("\n".join(performance_facts) if performance_facts else ""),
+            # RAG 및 웹/시장 보고서에서 온 참고 자료를 함께 보관 (FinalReport에서 dedup)
             "references": rag_refs,
         }
 
         market_assessment = {
-            "market_size": market_facts[0] if market_facts else "정보 부족",
-            "growth_drivers": market_facts[1:3] if len(market_facts) > 1 else [],
-            "target_industries": [],
+            "market_size": me.get("market_size") or (market_facts[0] if market_facts else "정보 부족"),
+            "growth_drivers": me.get("growth_drivers")
+            or (market_facts[1:3] if len(market_facts) > 1 else []),
+            "target_industries": me.get("target_industries") or [],
             "scalability": "정보 부족",
-            "commercialization_risk": None,
+            "commercialization_risk": (", ".join(me.get("key_risks", [])) or None),
             "references": rag_refs,
         }
 
@@ -530,6 +605,7 @@ def build_supervisor_graph(cfg: Optional[SupervisorConfig] = None):
     g.add_node("startup_search", lambda s: node_startup_search(s, cfg))
     g.add_node("technical_summary", lambda s: node_technical_summary(s, cfg))
     g.add_node("web_search", lambda s: node_web_search(s, cfg))
+    g.add_node("market_evaluation", lambda s: node_market_evaluation(s, cfg))
     g.add_node("finalize", lambda s: node_finalize_report(s, cfg))
 
     # 1. 항상 질문 정제부터 시작
@@ -560,7 +636,8 @@ def build_supervisor_graph(cfg: Optional[SupervisorConfig] = None):
 
     # 4. downstream
     g.add_edge("technical_summary", "web_search")
-    g.add_edge("web_search", "finalize")
+    g.add_edge("web_search", "market_evaluation")
+    g.add_edge("market_evaluation", "finalize")
     g.add_edge("finalize", END)
 
     return g.compile()
