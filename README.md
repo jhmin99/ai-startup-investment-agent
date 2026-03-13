@@ -255,8 +255,12 @@ cd /ai-startup-investment-agent
   - 시장 규모, 성장 동인, 주요 수요 산업(`target_industries`), 리스크 등 평가
 
 - **InvestmentDecisionAgent (`agents/investment_decision_agent/`)**
-  - 기술/시장/경쟁/실적 4개 축에 대해 1~5점 스코어링
-  - 가중합으로 **0~100점** 총점 및 최종 투자 verdict 산출
+  **기본 조건 평가**
+  - 시장 규모, 기술 차별성, 팀/경쟁 역량, 실적/재무 근거 충족 여부 판단
+
+  **점수 평가**
+  - 기술력 / 시장성 / 경쟁력 / 실적 4개 축 점수 산출
+  - 가중합으로 **0~100점 총점** 및 최종 투자 verdict 산출
   - 부족한 정보(`missing_information`) 및 Web Search 필요 여부 판단
 
 - **FinalReportAgent (`agents/final_report_agent/`)**
