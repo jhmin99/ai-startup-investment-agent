@@ -255,6 +255,7 @@ cd /ai-startup-investment-agent
   - 시장 규모, 성장 동인, 주요 수요 산업(`target_industries`), 리스크 등 평가
 
 - **InvestmentDecisionAgent (`agents/investment_decision_agent/`)**
+
   **기본 조건 평가**
   - 시장 규모, 기술 차별성, 팀/경쟁 역량, 실적/재무 근거 충족 여부 판단
 
