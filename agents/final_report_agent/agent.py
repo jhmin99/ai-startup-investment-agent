@@ -155,7 +155,6 @@ def _build_competitor_table(state: Dict[str, Any]) -> str:
 
     competitor_a_name = "경쟁사 A"
     competitor_b_name = "경쟁사 B"
-
     generic_comp_a = "범용 자동화 솔루션"
     generic_comp_b = "대기업/글로벌 로봇 기업"
     generic_summary = str(exploration.get("competitor_summary") or "세부 경쟁 정보 부족")
@@ -192,7 +191,7 @@ def _build_competitor_table(state: Dict[str, Any]) -> str:
         <tr>
           <td>차별점</td>
           <td class="highlight-col">✅ {escape(target_diff)}</td>
-          <td>{escape(generic_summary[:60] + ("..." if len(generic_summary) > 60 else ""))}</td>
+          <td>{escape(generic_summary)}</td>
           <td>브랜드/자본 우위 가능성</td>
         </tr>
       </tbody>
