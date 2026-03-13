@@ -122,7 +122,14 @@ Supervisor는 다음 에이전트들을 오케스트레이션합니다.
 
 ---
 
-## 7. Contributors
+## 7. Sample Report
+
+본 시스템이 생성한 최종 산출물 예시는 아래 PDF에서 확인할 수 있습니다.
+
+- [최종 투자 보고서 예시 (PDF)](./finald_report_20260313.pdf)
+
+
+## 8. Contributors
 
 | 이름 | 담당 역할 |
 |---|---|
