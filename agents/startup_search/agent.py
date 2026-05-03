@@ -26,9 +26,12 @@ class StartupSearchAgent:
     def __init__(self, retriever: Optional[StartupRetriever] = None):
         self.retriever = retriever or StartupRetriever()
 
-    def run(self, user_query: str, k: int = 5) -> StartupSearchOutput:
+    def run(self, user_query: str, k: int = 10) -> StartupSearchOutput:
         normalized = normalize_query(user_query)
-        retrieved_docs = self.retriever.search(normalized, k=k)
+        # 1차: 전체 쿼리로 후보 회사 파악 (필터 없음, MMR 적용)
+        retrieved_docs = self.retriever.search(normalized, k=k, use_mmr=True)
+        # 2차: 확인된 회사명별로 쿼리 증강 + 필터 재검색 → 더 관련성 높은 청크 확보
+        retrieved_docs = self._augment_search_per_company(normalized, retrieved_docs, k=k)
         profiles = self._build_startup_profiles(retrieved_docs)
 
         confidence = calculate_search_confidence(retrieved_docs, candidate_count=len(profiles))
@@ -136,6 +139,52 @@ class StartupSearchAgent:
         # 점수 내림차순
         profiles.sort(key=lambda p: p.score, reverse=True)
         return profiles
+
+    def _augment_search_per_company(
+        self,
+        normalized_query: str,
+        initial_docs: List[RetrievedDocument],
+        k: int = 10,
+    ) -> List[RetrievedDocument]:
+        """
+        쿼리 증강 + 회사별 메타데이터 필터 재검색.
+
+        1차 검색에서 파악된 회사명을 기반으로,
+        "{회사명} {질의}" 형태의 증강 쿼리로 해당 회사 청크만 재검색.
+        결과를 병합해 중복을 제거하고 반환.
+        """
+        # 1차 검색에서 회사명 추출
+        company_names: list[str] = []
+        seen: set[str] = set()
+        for doc in initial_docs:
+            md = doc.metadata or {}
+            name = md.get("company_name") or extract_company_name_from_text(doc.content)
+            if name and str(name) not in seen and str(name).lower() != "unknown":
+                seen.add(str(name))
+                company_names.append(str(name))
+
+        if not company_names:
+            return initial_docs
+
+        augmented_docs: list[RetrievedDocument] = []
+        seen_contents: set[str] = set()
+
+        for company in company_names:
+            augmented_query = f"{company} {normalized_query}"
+            per_company_docs = self.retriever.search(
+                augmented_query,
+                k=k,
+                company_name=company,
+                use_mmr=True,
+            )
+            for doc in per_company_docs:
+                content_key = (doc.content or "").strip()[:200]
+                if content_key not in seen_contents:
+                    seen_contents.add(content_key)
+                    augmented_docs.append(doc)
+
+        # 증강 검색 결과가 비면 초기 결과 반환
+        return augmented_docs if augmented_docs else initial_docs
 
     def _sort_doc_items(self, items: List[Tuple[RetrievedDocument, dict]]) -> List[Tuple[RetrievedDocument, dict]]:
         """metadata.page, metadata.chunk_index 오름차순 정렬 (없으면 뒤로)."""
